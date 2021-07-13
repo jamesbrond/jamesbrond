@@ -5,7 +5,8 @@ const name = 'Diego Brondo';
 const emoji = '~@:-]';
 
 const skills = {
-  languages: [ 'Java', 'JavaScript', 'TypeScript', 'PL/SQL', 'Python', 'LaTeX', 'PHP', 'Bash', 'HTML', 'SASS', 'LESS', 'CSS', 'C++', 'Perl' ].sort(),
+  languages: [ 'Java', 'JavaScript', 'TypeScript', 'PL/SQL', 'Python', 'LaTeX', 
+               'PHP', 'Bash', 'HTML', 'SASS', 'LESS', 'CSS', 'C++', 'Perl' ].sort(),
 
   libraries: [ 'java.net.http.HttpClient', 'org.apache.logging.log4j', 'Matplotlib' ],
 
