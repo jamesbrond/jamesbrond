@@ -2,6 +2,8 @@
 
 ```ts
 const name = 'Diego Brondo';
+
+// face of a developer with a paralyzed smile and a smoking brain
 const emoji = '~@:-]';
 
 const skills = {
