@@ -23,7 +23,7 @@ const skills = {
 
 var status = { 
   learning: [ 'Angular', 'C#' ],
-  interests: [ 'Open Source Contribution', 'Woodworking' ]
+  interests: [ 'Open Source Contribution', 'Wood Working', 'Home brewery' ]
 };
 ```
 
