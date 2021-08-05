@@ -6,7 +6,7 @@ const name = 'Diego Brondo';
 // face of a developer with a paralyzed smile and a smoking brain
 const emoji = '~@:-]';
 
-const skills = {
+var skills = {
   languages: [ 'Java', 'JavaScript', 'TypeScript', 'PL/SQL', 'Python', 'LaTeX', 
                'PHP', 'Bash', 'HTML', 'SASS', 'LESS', 'CSS', 'C++', 'Perl' ].sort(),
 
