@@ -1,0 +1,44 @@
+#!/bin/bash
+# system clean-up
+
+SCRIPT=${0##*/}
+USER_HOME=/home/jbrond
+
+# compute / free space
+function free_space {
+  echo `df --output=avail / | sed '1d;s/[^0-9]//g'`
+}
+
+echo ${SCRIPT}
+free_space1=$(free_space)
+printf "Free space: $(( free_space1 / 1024 )) MB\n"
+
+printf "Remove any packages that aren't needed by the system\n"
+apt-get --purge autoremove > /dev/null 2&>1 
+
+printf "Clean the package cache\n"
+apt-get clean > /dev/null 2&>1
+
+printf "Delete old log files in '/var/log'\n"
+find /var/log/ -type f -mtime +10 -delete > /dev/null 2&>1
+find /var/log/ -type f -regex '.*\.[0-9]+\.gz$' -delete > /dev/null 2&>1
+
+printf "Delete temporary files older than 10 days in '/var/tmp'\n"
+find /var/tmp/ -mtime +10 -type f -delete > /dev/null 2&>1
+
+printf "Empty jbrond's trash\n"
+rm -rf $USER_HOME/.local/share/Trash/* > /dev/null 2&>1
+
+printf "Clean jbrond's Firefox cache\n"
+pkill -f firefox > /dev/null 2&>1
+rm $USER_HOME/.mozilla/firefox/*.default/cookies.sqlite > /dev/null 2&>1
+rm $USER_HOME/.mozilla/firefox/*.default/*.sqlite $USER_HOME/.mozilla/firefox/*default/sessionstore.js > /dev/null 2&>1
+rm -r $USER_HOME/.cache/mozilla/firefox/*.default/* > /dev/null 2&>1
+
+free_space2=$(free_space)
+printf "Free space: $(( free_space2 / 1024 )) MB\n"
+printf "Released $(( (free_space2 - free_space1) / 1024 )) KB\n"
+
+exit 0
+
+# ~@:-]
