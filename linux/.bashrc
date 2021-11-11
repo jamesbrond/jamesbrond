@@ -57,34 +57,47 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 # The following block is surrounded by two delimiters.
-# These delimiters must not be modified. Thanks.
-# START KALI CONFIG VARIABLES
-PROMPT_ALTERNATIVE=twoline
+PROMPT_ALTERNATIVE=moba
 NEWLINE_BEFORE_PROMPT=yes
-# STOP KALI CONFIG VARIABLES
+
 
 if [ "$color_prompt" = yes ]; then
+    color() {
+        if [ $# -eq 1 ]; then
+            echo "\e[$1m"
+        elif [ $# -eq 2 ]; then
+            echo "\e[${1};${2}m"
+        fi
+    }
+    arrow() { echo "\e[7m\e[$1m$ICON_ARROW\e[27m"; }
+    color_reset() {	echo "\e[39;49;00m"; }
+
     # override default virtualenv indicator in prompt
     VIRTUAL_ENV_DISABLE_PROMPT=1
-
-    prompt_color='\[\033[;94m\]'
-    info_color='\[\033[1;32m\]'
-    prompt_symbol=💩
+    ICON_ARROW=$'\xEe\x82\xB0'
+    ICON_USER=$'\xE3\x83\x84'
+    PROMPT_USER="\$"
+    CLR_USER=93
+    CLR_CHROOT=90
+    CLR_VENV=94
+    CLR_HOST=32
+    CLR_PATH=34
     if [ "$EUID" -eq 0 ]; then # Change prompt colors for root user
-        prompt_color='\[\033[;94m\]'
-        info_color='\[\033[1;31m\]'
-        prompt_symbol=💀
+        ICON_USER=$'\xE2\x98\xA0'
+        CLR_USER=91
+        PROMPT_USER="#"
     fi
     case "$PROMPT_ALTERNATIVE" in
         twoline)
-            PS1=$prompt_color'┌──${debian_chroot:+($debian_chroot)──}${VIRTUAL_ENV:+(\[\033[0;1m\]$(basename $VIRTUAL_ENV)'$prompt_color')}('$info_color'\u${prompt_symbol}\h'$prompt_color')-[\[\033[0;1m\]\w'$prompt_color']\n'$prompt_color'└─'$info_color'\$\[\033[0m\] ';;
+            PS1=$(color_reset)'┌──${debian_chroot:+('$(color $CLR_CHROOT)'$debian_chroot'$(color_reset)')──}${VIRTUAL_ENV:+('$(color $CLR_VENV)'$(basename $VIRTUAL_ENV)'$(color_reset)')──}'$(color $CLR_USER)'${ICON_USER}\u'$(color_reset)'@'$(color $CLR_HOST)'\h'$(color_reset)'-['$(color $CLR_PATH)'\w'$(color_reset)']\n└─$PROMPT_USER ' ;;
         oneline)
-            PS1='${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)) }${debian_chroot:+($debian_chroot)}'$info_color'\u@\h\[\033[00m\]:'$prompt_color'\[\033[01m\]\w\[\033[00m\]\$ ';;
-        backtrack)
-            PS1='${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)) }${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ ';;
+            PS1='${VIRTUAL_ENV:+('$(color $CLR_VENV)'$(basename $VIRTUAL_ENV)'$(color_reset)') }${debian_chroot:+('$(color $CLR_CHROOT)'$debian_chroot'$(color_reset)') }'$(color $CLR_USER)'\u'$(color_reset)'@'$(color $CLR_HOST)'\h'$(color_reset)':'$(color $CLR_PATH)'\w'$(color_reset)'$PROMPT_USER ' ;;
+        moba)
+            CLR_FG=30
+            PS1='${debian_chroot:+'$(color $CLR_FG $((CLR_CHROOT+10)))' $debian_chroot '$(arrow $CLR_HOST)'}'$(color $CLR_FG $((CLR_HOST+10)))' \h '$(arrow $CLR_USER)$(color $CLR_FG $((CLR_USER+10)))' ${ICON_USER} \u ${VIRTUAL_ENV:+'$(arrow $CLR_VENV)$(color $CLR_FG $((CLR_VENV+10)))' $(basename $VIRTUAL_ENV) }'$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))' \w '$(arrow 30)$(color_reset)'\n$PROMPT_USER ' ;;
     esac
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)}\u@\h:\w$PROMPT_USER '
 fi
 unset color_prompt force_color_prompt
 
@@ -101,11 +114,7 @@ esac
 
 # enable color support of ls, less and man, and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
-    #alias dir='dir --color=auto'
-    #alias vdir='vdir --color=auto'
-
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
@@ -119,20 +128,19 @@ if [ -x /usr/bin/dircolors ]; then
     export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
     export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
     export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
+    # colored GCC warnings and errors
+    export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 fi
-
-# colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # Functions
 # Copy a file to the current directory with today’s date automatically appended to the end.
 bu() { cp $@ $@.bak-`date +%y%m%d%H%M%S`; }
 # Change directory and list files
 cdl() { cd "$@"; ls; }
-# Create and do to directory
-mcd () { mkdir -p $1; cd $1 }
+# Create and go to directory
+mkdircd () { mkdir -p $1; cd $1; }
 # Go up by <N> directories
-up () {
+up() {
     COUNTER=${1:-1}
     while [[ $COUNTER -gt 0 ]]; do
         UP="${UP}../"
@@ -142,48 +150,45 @@ up () {
     UP=''
 }
 
+# Alias definitions.
+# You may want to put all your additions into a separate file like
+# ~/.bash_aliases, instead of adding them here directly.
+# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
 # some more ls aliases
 alias ll='ls -l'
-alias l.='ls -A'
+alias la='ls -A'
+alias lal='ls -Al'
 alias l='ls -CF'
 # Find the files that has been added/modified most recently
 alias lt='ls -lrt'
+
 alias df='df -h'
 alias du='du -ch'
 # Grabs the disk usage in the current directory
-alias usage='du -h | awk 'END{print $1}''
+alias usage='du -h | awk ''END{print $1}'''
 # Gets the total disk usage on your machine
 alias totalusage='df -hl --total | grep total'
 # Shoot the fat ducks in your current dir and sub dirs
-alias ducks=’du -ck | sort -nr | head’
+alias ducks='du -ck | sort -nr | head'
 
 # Gives you what is using the most space. Both directories and files. Varies on current directory
 alias dumost='du -hsx * | sort -rh'
 
-# a quick way to get out of current directory .{1,2,3,4}
-dotSlash=""
-for i in 1 2 3 4; do
-    dotSlash=${dotSlash}'../';
-    baseName=".${i}"
-    alias $baseName="cd ${dotSlash}"
-done
+alias grepnocomment='grep -Ev ''^(#|$)'''
 
-alias grepnocomment='grep -Ev '''^(#|$)''''
-
-#progress bar on file copy. Useful evenlocal.
-alias cpprog="rsync --progress -ravz"
+# progress bar on file copy. Useful evenlocal.
+alias copy='rsync --progress -ravz'
 
 # handy short cuts #
 alias h='history'
 alias j='jobs -l'
 
-# Set vim as default
-alias vi=vim
-alias vis='vim "+set si"'
-alias edit='vim'
-
 # Show open ports
-alias ports='netstat -tlanp'
+alias ports='netstat -tanp'
 
 # Add safety nets
 # do not delete / or prompt if deleting more than 3 files at a time #
@@ -206,16 +211,7 @@ alias pscpu='ps auxf | sort -nr -k 3'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
+#alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
