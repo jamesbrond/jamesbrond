@@ -1,22 +1,22 @@
 import argparse
 
-def parseCommandLine():
-  parser = argparse.ArgumentParser(prog="pizza", usage='%(prog)s -n NUM [-l] [-f] [-nb]', formatter_class=argparse.RawDescriptionHelpFormatter, 
+def parse_cmd_line():
+  parser = argparse.ArgumentParser(prog="pizza", usage='%(prog)s -n NUM [-l] [-f] [-nb]', formatter_class=argparse.RawDescriptionHelpFormatter,
     description='''Pizza, Pasta e Mandolino:
-    ti permette di calcolare in pochi secondi quanti ingredienti ti occorrono per il tuo impasto. 
+    ti permette di calcolare in pochi secondi quanti ingredienti ti occorrono per il tuo impasto.
     Puoi scegliere fra due tipi di ricette a seconda del tipo di lievitazione:
-    - Lievitazione lenta in frigo (24 ore)¹: 
+    - Lievitazione lenta in frigo (24 ore)¹:
       25 ore prima: impastare e mettere in una ciotola con coperchio a chiusura
       24 ore prima: porre in frigo la massa
        5 ore prima: estrarre la massa dal frigo, tagliare i panielli (250 g circa) e metterli nelle cassette con coperchio
        0 ore prima: stendere e infornare
-    
+
     - Lievitazione "veloce" fuori frigo (8 ore)¹:
       9 ore prima: impastare
       8 ore prima: tagliare i panielli (200 g circa) e mettere nelle cassette con coperchio
       0 ore prima: stendere e infornare
-      
-¹ La durata delle lievitazione varia a seconda della temperatura a cui viene lasciato l'impasto. 
+
+¹ La durata delle lievitazione varia a seconda della temperatura a cui viene lasciato l'impasto.
   Temperature basse comportano tempi di lievitazione più lunghi non considetati in questa applicazione.''')
   parser.add_argument('-n', '--num', metavar='NUM', dest='doughsNumber', type=int, required=True, help='Numero di panielli: quante pizze vuoi fare, per esempio metti 3 se vuoi fare 3 pizze. (peso di ogni paniello ~200g)')
   parser.add_argument('-l', '--lievitazione', metavar='8|24 ORE', choices=[8, 24], dest='leaveningHours', type=int, default=8, help='Usa 24 per la ricetta a lievitazione lenta: 19 ore nel frigo e 5 ore fuori. Oppure usa 8 per una lievitazione di 8 ore fuori frigo. Default 8')
@@ -41,63 +41,63 @@ def convert2spoon(what, g):
     'yeastFresh': g / 3
   }[what]
 
-def output(prefix, what, g, hasScale, alternative):
+def output(prefix, what, g, has_scale, alternative):
   print(prefix, end="")
-  print((' %.2f g' % g) if hasScale else (' ~%.2f %s' % (convert2spoon(what, g), alternative)))
+  print((' %.2f g' % g) if has_scale else (' ~%.2f %s' % (convert2spoon(what, g), alternative)))
 
 def main():
   # const
   SPOON = 'cucchiai'
   TEASPOON = 'cucchiaini da caffé'
   # https://blog.giallozafferano.it/cookingiulia/2014/09/18/lievito-di-birra/
-  yeastFreshPerDry = 3.29
-  flourPerDough = 185
-  manitobaPercentage = 20 / flourPerDough
-  durumWheatSemolinaPercentage = 10 / flourPerDough
-  waterPercentage = 100 / flourPerDough
-  saltPerLiter = 50
-  yeastPerKilo8 = 300 / flourPerDough
-  yeastPerKilo24 = 100 / flourPerDough
-  
+  yeast_fresh_per_dry = 3.29
+  flour_per_dough = 185
+  manitoba_perc = 20 / flour_per_dough
+  durum_wheat_semolina_perc = 10 / flour_per_dough
+  water_perc = 100 / flour_per_dough
+  salt_per_liter = 50
+  yeast_per_kilo_8 = 300 / flour_per_dough
+  yeast_per_kilo_24 = 100 / flour_per_dough
+
   # read input
-  args = parseCommandLine()
-  doughsNumber = args['doughsNumber']
+  args = parse_cmd_line()
+  doughs_num = args['doughsNumber']
   recipe = args['leaveningHours']
-  isFreshYeast = args['isFreshYeast'] 
-  hasScale = args['hasScale']
+  is_fresh_yeast = args['isFreshYeast']
+  has_scale = args['hasScale']
 
   if recipe == 24:
-    yeastPerKilo = yeastPerKilo24
+    yeast_per_kilo = yeast_per_kilo_24
   elif recipe == 8:
-    yeastPerKilo = yeastPerKilo8
+    yeast_per_kilo = yeast_per_kilo_8
   else:
     print('Possibili valori per l\'argomento --lievitazione sono 8 o 24')
     exit(1)
 
-  flour = flourPerDough * doughsNumber
-  manitoba =  manitobaPercentage * flour
-  durumWheatSemolina =  durumWheatSemolinaPercentage * flour
-  flour0 = flour - manitoba - durumWheatSemolina
-  water = flour * waterPercentage
-  salt = saltPerLiter * water / 1000
+  flour = flour_per_dough * doughs_num
+  manitoba =  manitoba_perc * flour
+  durum_wheat_semolina =  durum_wheat_semolina_perc * flour
+  flour0 = flour - manitoba - durum_wheat_semolina
+  water = flour * water_perc
+  salt = salt_per_liter * water / 1000
   oil = salt
-  yeast = yeastPerKilo * flour / 1000
-  yeastFresh = yeast * yeastFreshPerDry
+  yeast = yeast_per_kilo * flour / 1000
+  yeast_fresh = yeast * yeast_fresh_per_dry
   sugar = yeast
-  
-  print('Ingredienti per %d panielli con %d ore di lievitazione' % (doughsNumber, recipe))
-  output(' totale farina:..', 'flour', flour, hasScale, SPOON)
-  output('   manitoba:.....', 'manitoba', manitoba, hasScale, SPOON)
-  output('   semola:.......', 'durumWheatSemolina', durumWheatSemolina, hasScale, SPOON)
-  output('   farina 0:.....',  'flour0', flour0, hasScale, SPOON)
-  output(' acqua:..........', 'water', water, hasScale, SPOON)
-  output(' olio:...........',  'oil', oil, hasScale, SPOON)
-  output(' sale:...........', 'salt', salt, hasScale, SPOON) 
-  output(' zucchero:.......',  'sugar', sugar, hasScale, TEASPOON)
-  if isFreshYeast:
-    output(' lievito fresco:.', 'yeastFresh', yeastFresh, hasScale, TEASPOON)
+
+  print('Ingredienti per %d panielli con %d ore di lievitazione' % (doughs_num, recipe))
+  output(' totale farina:..', 'flour', flour, has_scale, SPOON)
+  output('   manitoba:.....', 'manitoba', manitoba, has_scale, SPOON)
+  output('   semola:.......', 'durumWheatSemolina', durum_wheat_semolina, has_scale, SPOON)
+  output('   farina 0:.....',  'flour0', flour0, has_scale, SPOON)
+  output(' acqua:..........', 'water', water, has_scale, SPOON)
+  output(' olio:...........',  'oil', oil, has_scale, SPOON)
+  output(' sale:...........', 'salt', salt, has_scale, SPOON)
+  output(' zucchero:.......',  'sugar', sugar, has_scale, TEASPOON)
+  if is_fresh_yeast:
+    output(' lievito fresco:.', 'yeastFresh', yeast_fresh, has_scale, TEASPOON)
   else:
-    output(' lievito secco:..', 'yeast', yeast, hasScale, TEASPOON)
+    output(' lievito secco:..', 'yeast', yeast, has_scale, TEASPOON)
 
 if __name__ == "__main__":
   main()

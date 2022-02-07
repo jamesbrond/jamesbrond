@@ -1,8 +1,8 @@
-import argparse
 import os
-import logging
-import subprocess
 import sys
+import logging
+import argparse
+import subprocess
 
 def main():
   parser = argparse.ArgumentParser(description='Searches for the class in all JARs in specified folder.')
@@ -14,11 +14,11 @@ def main():
   parser.add_argument('--version', action='version', version='%(prog)s 2.0')
   args = parser.parse_args()
 
-  logLevel = logging.ERROR if args.logLevel == None else args.logLevel
-  logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logLevel)
+  log_level = logging.ERROR if args.logLevel == None else args.logLevel
+  logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=log_level)
   logger = logging.getLogger('JARFinder')
 
-  logger.debug(args)  
+  logger.debug(args)
 
   files = os.listdir(args.path)
   for f in files:
@@ -26,13 +26,13 @@ def main():
       logger.debug('found jar file %s', (args.path+'/'+f))
 
       proc = subprocess.run(
-        'jar tf ' + args.path+ '/' + f, 
-        shell=True, 
-        stdout=subprocess.PIPE, 
+        'jar tf ' + args.path+ '/' + f,
+        shell=True,
+        stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT
       )
       output = proc.stdout.decode('utf-8')
-      
+
       if proc.returncode != 0:
         logger.error(output)
         sys.exit()
@@ -42,3 +42,5 @@ def main():
 
 if __name__ == "__main__":
   main()
+
+# ~@:-]
