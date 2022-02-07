@@ -8,6 +8,10 @@ case $- in
       *) return;;
 esac
 
+if [ -f ~/.git-prompt.sh ]; then
+    . ~/.git-prompt.sh
+fi
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoredups:ignorespace
@@ -57,9 +61,14 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 # The following block is surrounded by two delimiters.
+# possible value are: oneline, twolines, moba
 PROMPT_ALTERNATIVE=moba
 NEWLINE_BEFORE_PROMPT=yes
+SHOW_GIT_BRANCH=yes
 
+function parse_git_dirty {
+    [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] && echo "~"
+}
 
 if [ "$color_prompt" = yes ]; then
     color() {
@@ -72,30 +81,65 @@ if [ "$color_prompt" = yes ]; then
     arrow() { echo "\e[7m\e[$1m$ICON_ARROW\e[27m"; }
     color_reset() {	echo "\e[39;49;00m"; }
 
+    __init_twolines() { echo "$(color_reset)╒══"; }
+    __chroot_twolines() { echo "\${debian_chroot:+$(color_reset)═╡'$(color $CLR_CHROOT)'\$debian_chroot'$(color_reset)'╞}"; }
+    __host_twolines() { echo "$(color_reset)@$(color $CLR_HOST)\h$(color_reset)╞"; }
+    __user_twolines() { echo "$(color_reset)╡$(color $CLR_USER)\u"; }
+    __venv_twolines() { echo "\${VIRTUAL_ENV:+$(color_reset)═╡$(color $CLR_VENV)\$(basename \$VIRTUAL_ENV)$(color_reset)╞}"; }
+    __path_twolines() { echo "$(color_reset)═╡$(color $CLR_PATH)\w$(color_reset)"; }
+    __end_twolines() { echo "$(color_reset)│"; }
+    __prompt_twolines() { echo "└─$(color $CLR_USER)$PROMPT_USER$(color_reset) "; }
+    __git_twolines() { echo "\$(__git_ps1 '$(color_reset)╞═╡$(color $CLR_GIT)%s$(color_reset)')"; }
+
+    __init_oneline() { echo "$(color_reset)"; }
+    __chroot_oneline() { echo "\${debian_chroot:+($(color $CLR_CHROOT)\$debian_chroot$(color_reset))}"; }
+    __host_oneline() { echo "$(color_reset)@$(color $CLR_HOST)\h"; }
+    __user_oneline() { echo "$(color $CLR_USER)\u"; }
+    __venv_oneline() { echo "\${VIRTUAL_ENV:+($(color $CLR_VENV)\$(basename \$VIRTUAL_ENV)$(color_reset))}"; }
+    __path_oneline() { echo "$(color_reset):$(color $CLR_PATH)\w"; }
+    __end_oneline() { echo "$(color_reset)"; }
+    __prompt_oneline() { echo "$(color $CLR_USER)$PROMPT_USER$(color_reset) "; }
+    __git_oneline() { echo "$(color $CLR_GIT)\$(__git_ps1 ' (%s)')"; }
+
+    __init_moba() { echo "$(color_reset)"; }
+    __chroot_moba() { echo "\${debian_chroot:+$(color $CLR_FG $((CLR_CHROOT+10))) \$debian_chroot $(arrow $CLR_HOST)}"; }
+    __host_moba() { echo "$(arrow $CLR_HOST)$(color $CLR_FG $((CLR_HOST+10))) \h"; }
+    __user_moba() { echo "$(color $CLR_FG $((CLR_USER+10))) \u"; }
+    __venv_moba() { echo "\${VIRTUAL_ENV:+$(arrow $CLR_VENV)$(color $CLR_FG $((CLR_VENV+10))) \$(basename \$VIRTUAL_ENV) }"; }
+    __path_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10))) \w"; }
+    __end_moba() { echo "$(arrow 30)$(color_reset)"; }
+    __prompt_moba() { echo "$(color $CLR_USER)$PROMPT_USER$(color_reset) "; }
+    __git_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))\$(__git_ps1 '[$(color $CLR_GIT)%s$(color $CLR_FG)]')"; }
+
     # override default virtualenv indicator in prompt
     VIRTUAL_ENV_DISABLE_PROMPT=1
     ICON_ARROW=$'\xEe\x82\xB0'
-    ICON_USER=$'\xE3\x83\x84'
     PROMPT_USER="\$"
     CLR_USER=93
     CLR_CHROOT=90
     CLR_VENV=94
     CLR_HOST=32
     CLR_PATH=34
+    CLR_GIT=37
+    CLR_FG=30
     if [ "$EUID" -eq 0 ]; then # Change prompt colors for root user
-        ICON_USER=$'\xE2\x98\xA0'
         CLR_USER=91
         PROMPT_USER="#"
     fi
-    case "$PROMPT_ALTERNATIVE" in
-        twoline)
-            PS1=$(color_reset)'┌──${debian_chroot:+('$(color $CLR_CHROOT)'$debian_chroot'$(color_reset)')──}${VIRTUAL_ENV:+('$(color $CLR_VENV)'$(basename $VIRTUAL_ENV)'$(color_reset)')──}'$(color $CLR_USER)'${ICON_USER}\u'$(color_reset)'@'$(color $CLR_HOST)'\h'$(color_reset)'-['$(color $CLR_PATH)'\w'$(color_reset)']\n└─$PROMPT_USER ' ;;
-        oneline)
-            PS1='${VIRTUAL_ENV:+('$(color $CLR_VENV)'$(basename $VIRTUAL_ENV)'$(color_reset)') }${debian_chroot:+('$(color $CLR_CHROOT)'$debian_chroot'$(color_reset)') }'$(color $CLR_USER)'\u'$(color_reset)'@'$(color $CLR_HOST)'\h'$(color_reset)':'$(color $CLR_PATH)'\w'$(color_reset)'$PROMPT_USER ' ;;
-        moba)
-            CLR_FG=30
-            PS1='${debian_chroot:+'$(color $CLR_FG $((CLR_CHROOT+10)))' $debian_chroot '$(arrow $CLR_HOST)'}'$(color $CLR_FG $((CLR_HOST+10)))' \h '$(arrow $CLR_USER)$(color $CLR_FG $((CLR_USER+10)))' ${ICON_USER} \u ${VIRTUAL_ENV:+'$(arrow $CLR_VENV)$(color $CLR_FG $((CLR_VENV+10)))' $(basename $VIRTUAL_ENV) }'$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))' \w '$(arrow 30)$(color_reset)'\n$PROMPT_USER ' ;;
-    esac
+    PS1=$(eval '__init_$PROMPT_ALTERNATIVE')
+    PS1="$PS1$(eval '__chroot_$PROMPT_ALTERNATIVE')"
+    PS1="$PS1$(eval '__user_$PROMPT_ALTERNATIVE')"
+    PS1="$PS1$(eval '__host_$PROMPT_ALTERNATIVE')"
+    PS1="$PS1$(eval '__venv_$PROMPT_ALTERNATIVE')"
+    PS1="$PS1$(eval '__path_$PROMPT_ALTERNATIVE')"
+    if [ $SHOW_GIT_BRANCH == 'yes' ]; then
+        PS1="$PS1$(eval '__git_$PROMPT_ALTERNATIVE')"
+    fi
+    PS1="$PS1$(eval '__end_$PROMPT_ALTERNATIVE')"
+    if [ $NEWLINE_BEFORE_PROMPT == 'yes' ] || [ $PROMPT_ALTERNATIVE == 'twolines' ]; then
+        PS1="$PS1\n"
+    fi
+    PS1="$PS1$(eval '__prompt_$PROMPT_ALTERNATIVE')"
 else
     PS1='${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)}\u@\h:\w$PROMPT_USER '
 fi
@@ -168,8 +212,6 @@ alias lt='ls -lrt'
 
 alias df='df -h'
 alias du='du -ch'
-# Grabs the disk usage in the current directory
-alias usage='du -h | awk ''END{print $1}'''
 # Gets the total disk usage on your machine
 alias totalusage='df -hl --total | grep total'
 # Shoot the fat ducks in your current dir and sub dirs
@@ -178,7 +220,7 @@ alias ducks='du -ck | sort -nr | head'
 # Gives you what is using the most space. Both directories and files. Varies on current directory
 alias dumost='du -hsx * | sort -rh'
 
-alias grepnocomment='grep -Ev ''^(#|$)'''
+alias grepnocomment="grep -Ev '^(#|$)'"
 
 # progress bar on file copy. Useful evenlocal.
 alias copy='rsync --progress -ravz'
@@ -208,10 +250,6 @@ alias psmem='ps auxf | sort -nr -k 4'
 
 ## get top process eating cpu ##
 alias pscpu='ps auxf | sort -nr -k 3'
-
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-#alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
