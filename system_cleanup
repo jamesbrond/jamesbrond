@@ -37,7 +37,7 @@ rm -r $USER_HOME/.cache/mozilla/firefox/*.default/* > /dev/null 2&>1
 
 free_space2=$(free_space)
 printf "Free space: $(( free_space2 / 1024 )) MB\n"
-printf "Released $(( (free_space2 - free_space1) / 1024 )) KB\n"
+printf "Released $(( (free_space1 - free_space2) / 1024 )) KB\n"
 
 exit 0
 
