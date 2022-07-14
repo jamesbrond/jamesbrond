@@ -1,4 +1,4 @@
-## Hello there! You are a bold one 
+# Hello there! You are a bold one
 
 ```ts
 const name = 'Diego Brondo';
@@ -7,7 +7,7 @@ const name = 'Diego Brondo';
 const emoji = '~@:-]';
 
 var skills = {
-  languages: [ 'Java', 'JavaScript', 'TypeScript', 'PL/SQL', 'Python', 'LaTeX', 
+  languages: [ 'Java', 'JavaScript', 'TypeScript', 'PL/SQL', 'Python', 'LaTeX',
                'PHP', 'Bash', 'HTML', 'SASS', 'LESS', 'CSS', 'C++', 'Perl' ].sort(),
 
   libraries: [ 'java.net.http.HttpClient', 'org.apache.logging.log4j', 'Matplotlib' ],
@@ -21,13 +21,13 @@ var skills = {
   misc: [ 'Analytical', 'Responsive design', 'Github Workflows' ]
 };
 
-var status = { 
+var status = {
   learning: [ 'Angular', 'C#' ],
   interests: [ 'Open Source Contribution', 'Wood Working', 'Home brewery' ]
 };
 ```
 
-### Stats ⚙️
+## Stats ⚙️
 
 ![Github Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=jamesbrond&layout=compact&count_private=true&theme=tokyonight)
 
