@@ -1,3 +1,5 @@
+.PHONY: help
+
 # Reset
 COLOR_OFF=\033[0m
 
@@ -73,4 +75,17 @@ ON_IWHITE=\033[0;107m
 
 # echoclr,COLOR,TEXT
 # example: $(call echoclr,$(WHITE),Hello world)
-echoclr = @echo -e "$(1)$(2)$(COLOR_OFF)"
+echoclr = echo -e "$(1)$(2)$(COLOR_OFF)"
+
+# prompt-%,TEXT
+prompt-success = $(call echoclr,$(GREEN),$(1))
+prompt-error   = $(call echoclr,$(RED),$(1))
+prompt-warn    = $(call echoclr,$(YELLOW),$(1))
+prompt-info    = $(call echoclr,$(BLUE),$(1))
+prompt-log     = $(call echoclr,$(BLACK),$(1))
+
+help: ## Show Makefile help
+# http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+	@grep -E -h '^[a-zA-Z_\.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(BLUE)%-20s$(COLOR_OFF) %s\n", $$1, $$2}'
+
+# ~@:-]
