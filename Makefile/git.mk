@@ -1,9 +1,7 @@
 # requires misc.mk
 # git executable must be in PATH
 
-ifndef DIST_DIR
-DIST_DIR = dist
-endif
+SOURCE_DIST_DIR = dist/source
 
 GIT_CURRENT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_MAIN_BRANCH      := main
@@ -38,12 +36,12 @@ else
 	git_update_version = $(call prompt-log,VERSION_FILE is not defined)
 endif
 
-.PHONY: clean-dist git-release zip-release zip-unstaged zip
+.PHONY: clean-source-dist git-release source-zip-release source-zip-unstaged source-zip
 
-$(DIST_DIR):
+$(SOURCE_DIST_DIR):
 	@mkdir -p $(@)
 
-$(DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.gz:
+$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.gz:
 ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
 	@$(git_stash)
 	@$(call git_checkout,$(GIT_RELEASE_BRANCH))
@@ -51,16 +49,20 @@ ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
 	@$(call git_checkout,$(GIT_CURRENT_BRANCH))
 	@$(git_unstash)
 endif
-$(DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.gz: $(GIT_SRCS)
+
+$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.gz: $(GIT_SRCS)
 	@$(call zip_create,$@)
-$(DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.gz:
+
+$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.gz:
 	@$(git_stash)
 	@$(call zip_create,$@)
 	@$(git_unstash)
-clean-dist: ## Clean zips in dist folder
+
+clean-source-dist: ## Clean zips in dist folder
 	@$(call prompt-log,Removing output zip files)
-	@-rm -f $(DIST_DIR)/$(PACKAGE)-*.tar.gz
-	@-rm -d $(DIST_DIR) || echo ""
+	@-rm -f $(SOURCE_DIST_DIR)/$(PACKAGE)-*.tar.gz
+	@-rm -d $(SOURCE_DIST_DIR) || echo ""
+
 git-release: ## Ask for new git tag, update version and push it to github (releases are in branch main only)
 	@$(call prompt-info,Last release: $(GIT_RELEASE_BRANCH))
 	@$(git_stash)
@@ -74,10 +76,10 @@ git-release: ## Ask for new git tag, update version and push it to github (relea
 	@$(call git_checkout, $(GIT_CURRENT_BRANCH))
 	@$(git_unstash)
 
-zip-release: $(DIST_DIR) $(DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.gz ## Create a distributable zip of the latest stable release
+source-zip-release: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.gz ## Create a distributable zip of the latest stable release
 
-zip-unstaged: $(DIST_DIR) $(DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.gz ## Create a distributable zip of current branch (with unstaged changes)
+source-zip-unstaged: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.gz ## Create a distributable zip of current branch (with unstaged changes)
 
-zip: $(DIST_DIR) $(DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.gz ## Create a distributable zip of current branch (without unstaged changes)
+source-zip: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.gz ## Create a distributable zip of current branch (without unstaged changes)
 
 # ~@:-]
