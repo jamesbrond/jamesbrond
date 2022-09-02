@@ -71,6 +71,18 @@ function parse_git_dirty {
 }
 
 if [ "$color_prompt" = yes ]; then
+    # override default virtualenv indicator in prompt
+    VIRTUAL_ENV_DISABLE_PROMPT=1
+    ICON_ARROW=$'\xEe\x82\xB0'
+    PROMPT_USER="\$"
+    CLR_USER=93
+    CLR_CHROOT=90
+    CLR_VENV=94
+    CLR_HOST=32
+    CLR_PATH=34
+    CLR_GIT=37
+    CLR_FG=30
+
     color() {
         if [ $# -eq 1 ]; then
             echo "\e[$1m"
@@ -88,7 +100,7 @@ if [ "$color_prompt" = yes ]; then
     __venv_twolines() { echo "\${VIRTUAL_ENV:+$(color_reset)═╡$(color $CLR_VENV)\$(basename \$VIRTUAL_ENV)$(color_reset)╞}"; }
     __path_twolines() { echo "$(color_reset)═╡$(color $CLR_PATH)\w$(color_reset)"; }
     __end_twolines() { echo "$(color_reset)│"; }
-    __prompt_twolines() { echo "└─$(color $CLR_USER)$PROMPT_USER$(color_reset) "; }
+    __prompt_twolines() { echo "└─$PROMPT_USER "; }
     __git_twolines() { echo "\$(__git_ps1 '$(color_reset)╞═╡$(color $CLR_GIT)%s$(color_reset)')"; }
 
     __init_oneline() { echo "$(color_reset)"; }
@@ -98,7 +110,7 @@ if [ "$color_prompt" = yes ]; then
     __venv_oneline() { echo "\${VIRTUAL_ENV:+($(color $CLR_VENV)\$(basename \$VIRTUAL_ENV)$(color_reset))}"; }
     __path_oneline() { echo "$(color_reset):$(color $CLR_PATH)\w"; }
     __end_oneline() { echo "$(color_reset)"; }
-    __prompt_oneline() { echo "$(color $CLR_USER)$PROMPT_USER$(color_reset) "; }
+    __prompt_oneline() { echo "$PROMPT_USER "; }
     __git_oneline() { echo "$(color $CLR_GIT)\$(__git_ps1 ' (%s)')"; }
 
     __init_moba() { echo "$(color_reset)"; }
@@ -108,20 +120,10 @@ if [ "$color_prompt" = yes ]; then
     __venv_moba() { echo "\${VIRTUAL_ENV:+$(arrow $CLR_VENV)$(color $CLR_FG $((CLR_VENV+10))) \$(basename \$VIRTUAL_ENV) }"; }
     __path_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10))) \w"; }
     __end_moba() { echo "$(arrow 30)$(color_reset)"; }
-    __prompt_moba() { echo "$(color $CLR_USER)$PROMPT_USER$(color_reset) "; }
-    __git_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))\$(__git_ps1 '[$(color $CLR_GIT)%s$(color $CLR_FG)]')"; }
+    __prompt_moba() { echo "$PROMPT_USER "; }
+    #__git_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))\$(__git_ps1 '[$(color $CLR_GIT)%s$(color $CLR_FG)]')"; }
+    __git_moba() { echo " \$(__git_ps1 '$(color $CLR_GIT)[%s]$(color $CLR_FG)')"; }
 
-    # override default virtualenv indicator in prompt
-    VIRTUAL_ENV_DISABLE_PROMPT=1
-    ICON_ARROW=$'\xEe\x82\xB0'
-    PROMPT_USER="\$"
-    CLR_USER=93
-    CLR_CHROOT=90
-    CLR_VENV=94
-    CLR_HOST=32
-    CLR_PATH=34
-    CLR_GIT=37
-    CLR_FG=30
     if [ "$EUID" -eq 0 ]; then # Change prompt colors for root user
         CLR_USER=91
         PROMPT_USER="#"
