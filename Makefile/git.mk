@@ -1,6 +1,10 @@
 # requires misc.mk
 # git executable must be in PATH
 
+ifndef PACKAGE
+	PACKAGE          := $(shell basename $$PWD)
+endif
+
 SOURCE_DIST_DIR = dist/source
 
 GIT_CURRENT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
@@ -14,15 +18,11 @@ else
 endif
 GIT_SRCS             := $(shell git ls-files)
 
-ifndef PACKAGE
-	PACKAGE          := $(shell basename $$PWD)
-endif
-
-git_checkout = git checkout $(1) --quiet
+git_checkout = git co $(1) --quiet
 git_stash    = git stash --include-untracked --quiet
 git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet
 
-zip_create   = tar -X .gitignore --exclude='.git' -zcf $(1) .
+zip_create   = tar -X .gitignore --exclude='.git' -jcf $(1) .
 
 ifdef VERSION_FILE
 	ifdef VERSION_EXP
@@ -41,7 +41,7 @@ endif
 $(SOURCE_DIST_DIR):
 	@mkdir -p $(@)
 
-$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.gz:
+$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.bz2:
 ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
 	@$(git_stash)
 	@$(call git_checkout,$(GIT_RELEASE_BRANCH))
@@ -50,10 +50,10 @@ ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
 	@$(git_unstash)
 endif
 
-$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.gz: $(GIT_SRCS)
+$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.bz2: $(GIT_SRCS)
 	@$(call zip_create,$@)
 
-$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.gz:
+$(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.bz2:
 	@$(git_stash)
 	@$(call zip_create,$@)
 	@$(git_unstash)
