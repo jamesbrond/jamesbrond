@@ -18,7 +18,7 @@ else
 endif
 GIT_SRCS             := $(shell git ls-files)
 
-git_checkout = git co $(1) --quiet
+git_checkout = git checkout $(1) --quiet
 git_stash    = git stash --include-untracked --quiet
 git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet
 
@@ -67,7 +67,7 @@ git-release: ## Ask for new git tag, update version and push it to github (relea
 	@$(call prompt-info,Last release: $(GIT_RELEASE_BRANCH))
 	@$(git_stash)
 	@$(call git_checkout, $(GIT_MAIN_BRANCH))
-	@while [ -z "$$gittag" ]; do \
+	while [ -z "$$gittag" ]; do \
 		read -r -p "new git tag: " gittag; \
 	done && \
 	$(call git_update_version,$$gittag) && \

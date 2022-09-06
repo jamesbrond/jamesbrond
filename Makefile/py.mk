@@ -15,8 +15,11 @@ endif
 ifndef LOCALES_DIR
 LOCALES_DIR = locales
 endif
+
+ifneq ($(wildcard $(LOCALES_DIR)),)
 LANG_SRCS     := $(shell /usr/bin/find $(LOCALES_DIR) -name "*.po" -print)
 LANG_OBJS     :=  $(LANG_SRCS:.po=.mo)
+endif
 
 PY_SRCS       := $(shell /usr/bin/find . -path ./$(VENV_DIR) -prune -o -name "*.py" -print)
 REQUIREMENTS  := requirements.txt
