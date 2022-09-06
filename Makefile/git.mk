@@ -76,10 +76,10 @@ git-release: ## Ask for new git tag, update version and push it to github (relea
 	@$(call git_checkout, $(GIT_CURRENT_BRANCH))
 	@$(git_unstash)
 
-source-zip-release: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.gz ## Create a distributable zip of the latest stable release
+source-zip-release: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.bz2 ## Create a distributable zip of the latest stable release
 
-source-zip-unstaged: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.gz ## Create a distributable zip of current branch (with unstaged changes)
+source-zip-unstaged: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV)-unstaged.tar.bz2 ## Create a distributable zip of current branch (with unstaged changes)
 
-source-zip: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.gz ## Create a distributable zip of current branch (without unstaged changes)
+source-zip: $(SOURCE_DIST_DIR) $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_CURRENT_BRANCH)-$(GIT_CURRENT_REV).tar.bz2 ## Create a distributable zip of current branch (without unstaged changes)
 
 # ~@:-]
