@@ -1,0 +1,30 @@
+# This is an example of Makefile
+
+CHKTEX          := chktex
+LATEX_MAIN_SRCS := $(wildcard *.tex)
+LATEXMK         := latexmk
+LOCALES_DIR     :=
+NPM             := npm
+PACKAGE         := cv
+PDF_READER      := sumatrapdf
+VERSION_EXP     := [0-9\.]+
+VERSION_FILE    := .version
+
+-include .make/misc.mk
+-include .make/latex.mk
+-include .make/git.mk
+
+
+PHONY: clean clean-dist dist lint
+.DEFAULT_GOAL := dist
+
+
+clean-dist: clean clean-source-dist clean-latex-dist ## Clean-up the entire solution
+
+clean: clean-latex ## Clean-up latex build artifacts
+
+dist: latex ## Build PDF from latex files
+
+lint: text-lint latex-lint ## Run lint analysis
+
+# ~@:-]

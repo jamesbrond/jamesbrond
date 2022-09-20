@@ -1,9 +1,19 @@
-# requires misc.mk
 # git executable must be in PATH
 
-ifndef PACKAGE
-	PACKAGE          := $(shell basename $$PWD)
-endif
+# required makefiles:
+# - misc.mk
+
+# required variables:
+#
+
+# optional variables:
+# - PACKAGE
+# - VERSION_EXP
+# - VERSION_FILE
+
+
+PACKAGE              ?= $(shell basename $$PWD)
+
 
 SOURCE_DIST_DIR = dist/source
 
@@ -67,7 +77,7 @@ git-release: ## Ask for new git tag, update version and push it to github (relea
 	@$(call prompt-info,Last release: $(GIT_RELEASE_BRANCH))
 	@$(git_stash)
 	@$(call git_checkout, $(GIT_MAIN_BRANCH))
-	while [ -z "$$gittag" ]; do \
+	@while [ -z "$$gittag" ]; do \
 		read -r -p "new git tag: " gittag; \
 	done && \
 	$(call git_update_version,$$gittag) && \

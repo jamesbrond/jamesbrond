@@ -1,4 +1,12 @@
-# requires user.mk and misc.mk
+# required makefiles:
+# - misc.mk
+
+# required variables:
+# - PYTHON
+
+# optional variables:
+# - PACKAGE
+# - LOCALES_DIR
 
 VENV_DIR      := venv
 
@@ -8,13 +16,8 @@ MSGFMT        := $(PY_HOME)/Tools/i18n/msgfmt.py
 PYGETTEXT     := $(PY_HOME)/Tools/i18n/pygettext.py
 PYTHON        := $(PY_HOME)/python
 
-ifndef PACKAGE
-PACKAGE       := $(shell basename $$PWD)
-endif
-
-ifndef LOCALES_DIR
-LOCALES_DIR = locales
-endif
+PACKAGE       ?= $(shell basename $$PWD)
+LOCALES_DIR   ?= locales
 
 ifneq ($(wildcard $(LOCALES_DIR)),)
 LANG_SRCS     := $(shell /usr/bin/find $(LOCALES_DIR) -name "*.po" -print)
@@ -29,7 +32,7 @@ do_activate   = [[ -z "$$VIRTUAL_ENV" ]] && . $(ACTIVATE) || true
 pyenv         = $(do_activate) && $(1)
 
 
-.PHONY: clean-pycache clean-pygettext clean-venv deps devdeps lint pygettext-add pygettext-catalog pygettext-locales
+.PHONY: clean-pycache clean-pygettext clean-venv py-deps py-devdeps py-gettext-add py-gettext-catalog py-gettext-locales py-lint
 .SUFFIXES: .po .mo
 
 
@@ -88,13 +91,19 @@ clean-venv: ## Remove virtual evnironemnt
 	@$(call prompt-log,Removing virtual environment)
 	@rm -rf $(VENV_DIR)
 
-deps: $(SITE_PACKAGES) ## Activate venv and install requirements
+py-deps: $(SITE_PACKAGES) ## Activate venv and install requirements
 
-devdeps: deps ## Install both application and developer requirements (pylint, flake8)
+py-devdeps: deps ## Install both application and developer requirements (pylint, flake8)
 	@$(call prompt-info,Installing developement requirements)
 	@$(call pyenv,pip install -U pylint flake8)
 
-lint: ## Lint and static-check
+py-gettext-add: $(LOCALES_DIR) pygettext-catalog $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po ## Create new empty locale. Example usage make pygettext-add ln=it
+
+py-gettext-catalog: $(LOCALES_DIR) $(LOCALES_DIR)/$(PACKAGE).pot ## Generate raw messages catalogs
+
+py-gettext-locales: $(LANG_OBJS) ## Produce binary catalog files that are parsed by the Python gettext module in order to be used in program.
+
+py-lint: ## Lint and static-check
 # lint depends on devdeps, but if we put the dependency here we lost a lot of time
 # trying to update pylint and flake8 that are most of the times already up-to-date
 # so please consider to run lint target only after installing devdeps.
@@ -102,11 +111,5 @@ lint: ## Lint and static-check
 	@$(call pyenv,python -m flake8 --config .github/linters/flake8 $(PY_SRCS)) && $(call prompt-success,Done) || $(call prompt-error,Failed)
 	@$(call prompt-info,Running pylint)
 	@$(call pyenv,python -m pylint  --recursive=y --rcfile=.github/linters/pylint.toml $(PY_SRCS)) && $(call prompt-success,Done) || $(call prompt-error,Failed)
-
-pygettext-add: $(LOCALES_DIR) pygettext-catalog $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po ## Create new empty locale. Example usage make pygettext-add ln=it
-
-pygettext-catalog: $(LOCALES_DIR) $(LOCALES_DIR)/$(PACKAGE).pot ## Generate raw messages catalogs
-
-pygettext-locales: $(LANG_OBJS) ## Produce binary catalog files that are parsed by the Python gettext module in order to be used in program.
 
 # ~@:-]
