@@ -103,6 +103,18 @@ today = $(shell date '+%F')
 # Return current date in format YYYYmmddHHMMSS
 now = $(shell date '+%Y%m%d%H%M%S')
 
+# Replace in files
+# usage file_replace,folder,files,find_str,replace_str
+# example $(call file_replace,build,*,OLD_STR,NEW_STR))
+# example $(call file_replace,docs,example.txt,OLD_STR,NEW_STR))
+file_replace = /usr/bin/find "$(1)" -name "$(2)" -type f -exec sed -i "s/$(3)/$(2)/g" {} \;
+
+# Execute command in specific folder
+# usare exec_in,folder,command
+# example $(call exec_in,$(BUILD_DIR),docker-compose up)
+exec_in = cd "$(1)"; $(2)
+
+
 help: ## Show Makefile help
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E -h '^[a-zA-Z_\.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(BLUE)%-20s$(COLOR_OFF) %s\n", $$1, $$2}'
