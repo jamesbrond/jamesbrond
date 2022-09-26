@@ -42,14 +42,14 @@ $(NODE_MODULES_DIR)/%: package.json
 package.json:
 	@$(NPM) init --yes
 
-clean-latex-dist: ## Clean pdf in dist folder
+latex-clean-dist: ## Clean pdf in dist folder
 	@$(call prompt-log,Removing pdf output files)
 	@-rm -f $(LATEX_MAIN_OBJS)
 	@-rm -rf $(LATEX_DIST_DIR) || echo ""
 	@-rm -rf $(NODE_MODULES_DIR) || echo ""
 	@-rm package.json package-lock.json || echo ""
 
-clean-latex: ## Clean-up latex build artifacts
+latex-clean: ## Clean-up latex build artifacts
 	@$(call prompt-log,Removing temporary generated latex files)
 	@-rm -rf $(LATEX_BUILD_DIR)
 

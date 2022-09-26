@@ -107,7 +107,7 @@ now = $(shell date '+%Y%m%d%H%M%S')
 # usage file_replace,folder,files,find_str,replace_str
 # example $(call file_replace,build,*,OLD_STR,NEW_STR))
 # example $(call file_replace,docs,example.txt,OLD_STR,NEW_STR))
-file_replace = /usr/bin/find "$(1)" -name "$(2)" -type f -exec sed -i "s/$(3)/$(2)/g" {} \;
+file_replace = /usr/bin/find "$(1)" -name "$(2)" -type f -exec sed -i "s/$(3)/$(4)/g" {} \;
 
 # Execute command in specific folder
 # usare exec_in,folder,command

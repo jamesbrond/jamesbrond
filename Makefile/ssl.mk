@@ -19,6 +19,6 @@ endef
 
 # call ssl_dhparam,OUTPUT_FILE
 define ssl_dhparam
-	@$(call prompt-info,Generate SSL dhparam"
-	@(OPENSSL) dhparam -out $(1) 4096
+	@$(call prompt-info,Generate SSL dhparam)
+	@$(OPENSSL) dhparam -out $(1) 4096
 endef

@@ -77,27 +77,27 @@ $(SITE_PACKAGES): $(ACTIVATE) $(REQUIREMENTS)
 	@$(call prompt-info,Installing dependencies)
 	@$(call pyenv,pip install -Ur $(REQUIREMENTS))
 
-clean-pycache: ## Remove bytecode-compiled python files
+py-clean-cache: ## Remove bytecode-compiled python files
 	@$(call prompt-log,Removing bytecode-compiled python files)
 	@/usr/bin/find . -name __pycache__ -type d  -print0 | xargs -0 -r rm -rf
 
-clean-pygettext: ## Remove generated and bytecode-compiled locales files
+py-clean-gettext: ## Remove generated and bytecode-compiled locales files
 	@$(call prompt-log,Removing pot file "$(LOCALES_DIR)/$(PACKAGE).pot")
 	@-rm $(LOCALES_DIR)/$(PACKAGE).pot
 	@$(call prompt-log,Removing compiled locale translations files)
 	@-rm $(LANG_OBJS)
 
-clean-venv: ## Remove virtual evnironemnt
+py-clean-venv: ## Remove virtual evnironemnt
 	@$(call prompt-log,Removing virtual environment)
 	@rm -rf $(VENV_DIR)
 
 py-deps: $(SITE_PACKAGES) ## Activate venv and install requirements
 
-py-devdeps: deps ## Install both application and developer requirements (pylint, flake8)
+py-devdeps: py-deps ## Install both application and developer requirements (pylint, flake8)
 	@$(call prompt-info,Installing developement requirements)
 	@$(call pyenv,pip install -U pylint flake8)
 
-py-gettext-add: $(LOCALES_DIR) pygettext-catalog $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po ## Create new empty locale. Example usage make pygettext-add ln=it
+py-gettext-add: $(LOCALES_DIR) py-gettext-catalog $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po ## Create new empty locale. Example usage make pygettext-add ln=it
 
 py-gettext-catalog: $(LOCALES_DIR) $(LOCALES_DIR)/$(PACKAGE).pot ## Generate raw messages catalogs
 
