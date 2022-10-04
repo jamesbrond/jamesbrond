@@ -1,12 +1,18 @@
 # This is an example of Makefile
 
+# global variables
+BUILD_DIR       := build
+DIST_DIR        := dist
+PACKAGE         := cv
+# latex variables
 CHKTEX          := chktex
 LATEX_MAIN_SRCS := $(wildcard *.tex)
 LATEXMK         := latexmk
-LOCALES_DIR     :=
-NPM             := npm
-PACKAGE         := cv
 PDF_READER      := sumatrapdf
+NPM             := npm
+# python variables
+LOCALES_DIR     :=
+# git variables
 VERSION_EXP     := [0-9\.]+
 VERSION_FILE    := .version
 
@@ -14,10 +20,23 @@ VERSION_FILE    := .version
 -include .make/latex.mk
 -include .make/git.mk
 
+# list of all include files
+MAKE_INCLUDES = $(shell grep -E '^-include .*\s$$' Makefile | awk 'BEGIN {FS = " "}; {print $$2}')
+# this will download all include files (if they already don't exist)
+$(MAKE_INCLUDES):
+	@mkdir -p $$(dirname $@); \
+	NAME=$$(basename $@); \
+	URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$$NAME"); \
+	echo "get $$URL"; \
+	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
+
 
 PHONY: clean clean-dist dist lint
 .DEFAULT_GOAL := dist
 
+
+$(BUILD_DIR):
+	@mkdir -p $@
 
 clean-dist: clean clean-source-dist clean-latex-dist ## Clean-up the entire solution
 

@@ -2,19 +2,26 @@
 # - misc.mk
 
 # required variables:
-# - PYTHON
 
 # optional variables:
 # - PACKAGE
 # - LOCALES_DIR
 
+PY_DIR        := $(shell for d in $$(echo $$PATH | tr ':' ' '); do \
+					if [[ -d $$d && -x $$d && -r $$d ]]; then \
+						if [[ $$(/usr/bin/find $$d -maxdepth 0 -name python -print | wc -l) -ne 0 ]]; then \
+							echo $$d; \
+							exit 0; \
+						fi \
+					fi \
+				done)
 VENV_DIR      := venv
 
 ACTIVATE      := $(VENV_DIR)/Scripts/activate
 SITE_PACKAGES := $(VENV_DIR)/Lib/site-packages
-MSGFMT        := $(PY_HOME)/Tools/i18n/msgfmt.py
-PYGETTEXT     := $(PY_HOME)/Tools/i18n/pygettext.py
-PYTHON        := $(PY_HOME)/python
+MSGFMT        := $(PY_DIR)/Tools/i18n/msgfmt.py
+PYGETTEXT     := $(PY_DIR)/Tools/i18n/pygettext.py
+PYTHON        := $(PY_DIR)/python
 
 PACKAGE       ?= $(shell basename $$PWD)
 LOCALES_DIR   ?= locales
