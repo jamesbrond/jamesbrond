@@ -7,6 +7,7 @@
 # - PACKAGE
 # - LOCALES_DIR
 
+ifndef PY_DIR
 PY_DIR        := $(shell for d in $$(echo $$PATH | tr ':' ' '); do \
 					if [[ -d $$d && -x $$d && -r $$d ]]; then \
 						if [[ $$(/usr/bin/find $$d -maxdepth 0 -name python -print | wc -l) -ne 0 ]]; then \
@@ -15,6 +16,7 @@ PY_DIR        := $(shell for d in $$(echo $$PATH | tr ':' ' '); do \
 						fi \
 					fi \
 				done)
+endif
 VENV_DIR      := venv
 
 ACTIVATE      := $(VENV_DIR)/Scripts/activate
@@ -44,6 +46,7 @@ pyenv         = $(do_activate) && $(1)
 
 
 .po.mo:
+	@$(call prompt-log,$< -> $@)
 	@$(PYTHON) $(MSGFMT) -o $@ $<
 
 $(ACTIVATE):
@@ -71,13 +74,13 @@ ifdef ln
 	@-cp $(@) $(@:.po=-$(now).bak) > /dev/null 2>&1 || true
 	@cp $(<) $(@)
 else
-	@$(call prompt-error,Missing language: set it with ln=LANG. Example ln=it)
+	@$(call prompt-error,Missing language: set it with ln=LANG. Example 'make py-gettext-add ln=it')
 endif
 
 $(LOCALES_DIR)/$(PACKAGE).pot: $(PY_SRCS)
 # create pot file only if python source changes
 	@$(call prompt-info,Creating $(LOCALES_DIR)/$(PACKAGE).pot)
-	@$(PYTHON) $(PYGETTEXT) -d $(PACKAGE) -o $(LOCALES_DIR)/$(PACKAGE).pot $(PY_SRCS)
+	@$(PYTHON) $(PYGETTEXT) -d $(PACKAGE) --no-location -o $(LOCALES_DIR)/$(PACKAGE).pot $(PY_SRCS)
 
 $(SITE_PACKAGES): $(ACTIVATE) $(REQUIREMENTS)
 # install dependencies only if requirements.txt file changes
@@ -104,7 +107,7 @@ py-devdeps: py-deps ## Install both application and developer requirements (pyli
 	@$(call prompt-info,Installing developement requirements)
 	@$(call pyenv,pip install -U pylint flake8)
 
-py-gettext-add: $(LOCALES_DIR) py-gettext-catalog $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po ## Create new empty locale. Example usage make pygettext-add ln=it
+py-gettext-add: $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po ## Create new empty locale. Example usage make py-gettext-add ln=it
 
 py-gettext-catalog: $(LOCALES_DIR) $(LOCALES_DIR)/$(PACKAGE).pot ## Generate raw messages catalogs
 
@@ -113,7 +116,7 @@ py-gettext-locales: $(LANG_OBJS) ## Produce binary catalog files that are parsed
 py-lint: ## Lint and static-check
 # lint depends on devdeps, but if we put the dependency here we lost a lot of time
 # trying to update pylint and flake8 that are most of the times already up-to-date
-# so please consider to run lint target only after installing devdeps.
+# so please consider to run lint target only after make py-devdeps.
 	@$(call prompt-info,Running flake8)
 	@$(call pyenv,python -m flake8 --config .github/linters/flake8 $(PY_SRCS)) && $(call prompt-success,Done) || $(call prompt-error,Failed)
 	@$(call prompt-info,Running pylint)
