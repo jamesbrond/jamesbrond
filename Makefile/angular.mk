@@ -27,7 +27,7 @@ $(NG_BUILD_DIR):
 
 $(NG_OBJ): $(NG_BUILD_DIR) $(NG_SRCS)
 	@$(call prompt-info,Build Angular UI)
-	@cd $(NG_DIR) && ng build --output-path $(NG_RELPATH)/$(NG_BUILD_DIR)
+	@cd $(NG_DIR) && ng build --configuration=production --output-path $(NG_RELPATH)/$(NG_BUILD_DIR)
 
 ng-compile: $(NG_OBJ)
 
