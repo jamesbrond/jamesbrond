@@ -93,6 +93,16 @@ prompt-error   = $(call echoclr,$(RED),$(1))
 prompt-warn    = $(call echoclr,$(YELLOW),$(1))
 prompt-info    = $(call echoclr,$(BLUE),$(1))
 prompt-log     = $(call echoclr,$(BLACK),$(1))
+prompt-done    = $(call echoclr,$(BLUE),$(1) done\n)
+
+# log-%,PREFIX,TEXT
+log-success = $(call echoclr,$(GREEN),[$(1)] $(2))
+log-error   = $(call echoclr,$(RED),[$(1)] $(2))
+log-warn    = $(call echoclr,$(YELLOW),[$(1)] $(2))
+log-info    = $(call echoclr,$(BLUE),[$(1)] $(2))
+log         = $(call echoclr,$(BLACK),[$(1)] $(2))
+log-done    = $(call echoclr,$(BLUE),[$(1)] $(2) done\n)
+
 
 # Random UUID generator
 uuid = $(shell uuidgen)

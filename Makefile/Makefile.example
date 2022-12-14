@@ -16,12 +16,15 @@ LOCALES_DIR     :=
 VERSION_EXP     := [0-9\.]+
 VERSION_FILE    := .version
 
+ifeq (,$(filter clean-deep,$(MAKECMDGOALS)))
 -include .make/misc.mk
 -include .make/latex.mk
 -include .make/git.mk
+-include .make/py.mk
+endif
 
 # list of all include files
-MAKE_INCLUDES = $(shell grep -E '^-include .*\s$$' Makefile | awk 'BEGIN {FS = " "}; {print $$2}')
+MAKE_INCLUDES = $(shell grep -E '^-include .*\s?$$' Makefile | awk 'BEGIN {FS = " "}; {print $$2}')
 # this will download all include files (if they already don't exist)
 $(MAKE_INCLUDES):
 	@mkdir -p $$(dirname $@); \
@@ -31,19 +34,28 @@ $(MAKE_INCLUDES):
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
 
 
-PHONY: clean clean-dist dist lint
+PHONY: clean clean-deep clean-release compile release lint
 .DEFAULT_GOAL := dist
 
 
-$(BUILD_DIR):
-	@mkdir -p $@
+clean:: ## Cleans leftover build files but leaves dependencies untouched
+	@$(call prompt-info,$@ done)
 
-clean-dist: clean clean-source-dist clean-latex-dist ## Clean-up the entire solution
+clean-release:: ## Cleans generated outputs but leaves dependencies untouched
 
-clean: clean-latex ## Clean-up latex build artifacts
+clean-deep:: clean clean-release ## Cleans up the entire solutions
+	@-rm -rf $(BUILD_DIR)
+	@-rm -rf $(DIST_DIR)
+	@-rm -rf .make
+	@$(call prompt-info,$@ done)
 
-dist: latex ## Build PDF from latex files
+lint:: ## Lint solution
+	@$(call prompt-info,$@ done)
 
-lint: text-lint latex-lint ## Run lint analysis
+compile:: ## Compile the entire solution
+	@$(call prompt-info,$@ done)
+
+release:: ## Create distributable
+	@$(call prompt-info,$@ done)
 
 # ~@:-]

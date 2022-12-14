@@ -21,18 +21,24 @@ NG_RELPATH   := $(shell SOURCE="$(ROOT_DIR)/$(NG_DIR)/"; \
 	[ "$${REPLY\#/}" ] && REPLY="$${REPLY%/}" || REPLY="$${REPLY:-.}"; \
 	echo $${REPLY})
 
+NG_PREFIX := NG
 
 $(NG_BUILD_DIR):
 	@mkdir -p $@
 
 $(NG_OBJ): $(NG_BUILD_DIR) $(NG_SRCS)
-	@$(call prompt-info,Build Angular UI)
+	@$(call log-info,$(NG_PREFIX),Build Angular UI)
 	@cd $(NG_DIR) && ng build --configuration=production --output-path $(NG_RELPATH)/$(NG_BUILD_DIR)
 
-ng-compile: $(NG_OBJ)
+compile:: $(NG_OBJ)
 
 ng-serve:
-	@$(call prompt-info,NG serve)
+	@$(call log-info,$(NG_PREFIX),NG serve)
 	@cd $(NG_DIR) && ng serve
+
+lint::
+	@$(call log-info,$(NG_PREFIX),Running ng lint)
+	@cd $(NG_DIR) && ng lint
+
 
 # ~@:-]
