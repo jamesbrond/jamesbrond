@@ -1,61 +1,70 @@
 # This is an example of Makefile
 
 # global variables
-BUILD_DIR       := build
+BUILD_DIR       := .build
 DIST_DIR        := dist
-PACKAGE         := cv
+PACKAGE         := PackageName
 # latex variables
 CHKTEX          := chktex
 LATEX_MAIN_SRCS := $(wildcard *.tex)
 LATEXMK         := latexmk
 PDF_READER      := sumatrapdf
-NPM             := npm
 # python variables
 LOCALES_DIR     :=
 # git variables
 VERSION_EXP     := [0-9\.]+
 VERSION_FILE    := .version
+# angular variables
+NG_DIR          := web
 
-ifeq (,$(filter clean-deep,$(MAKECMDGOALS)))
 -include .make/misc.mk
+ifeq (,$(filter clean clean-%,$(MAKECMDGOALS)))
 -include .make/latex.mk
 -include .make/git.mk
 -include .make/py.mk
+-include .make/angular.mk
 endif
 
-# list of all include files
-MAKE_INCLUDES = $(shell grep -E '^-include .*\s?$$' Makefile | awk 'BEGIN {FS = " "}; {print $$2}')
-# this will download all include files (if they already don't exist)
-$(MAKE_INCLUDES):
-	@mkdir -p $$(dirname $@); \
-	NAME=$$(basename $@); \
-	URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$$NAME"); \
+.make:
+	@echo "make directory .make"
+	@mkdir -p $@
+
+.make/%.mk: | .make
+	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$$(basename $@)"); \
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
 
 
 PHONY: clean clean-deep clean-release compile release lint
-.DEFAULT_GOAL := dist
+.DEFAULT_GOAL := compile
 
 
 clean:: ## Cleans leftover build files but leaves dependencies untouched
-	@$(call prompt-info,$@ done)
+	@$(call log-info,MAKE,$@ done)
 
 clean-release:: ## Cleans generated outputs but leaves dependencies untouched
+# @$(call prompt-info,$@> done)
 
 clean-deep:: clean clean-release ## Cleans up the entire solutions
 	@-rm -rf $(BUILD_DIR)
 	@-rm -rf $(DIST_DIR)
 	@-rm -rf .make
-	@$(call prompt-info,$@ done)
+	@$(call log-info,MAKE,$@ done)
 
 lint:: ## Lint solution
-	@$(call prompt-info,$@ done)
+	@$(call log-info,MAKE,$@ done)
 
 compile:: ## Compile the entire solution
-	@$(call prompt-info,$@ done)
+	@$(call log-info,MAKE,$@ done)
 
 release:: ## Create distributable
-	@$(call prompt-info,$@ done)
+	@$(call log-info,MAKE,$@ done)
+
+run:: ## Run application
+	@$(call log-info,MAKE,$@ done)
+
+test::
+	echo $(NG_RELPATH)
+	@$(call log-info,MAKE,$@ done)
 
 # ~@:-]

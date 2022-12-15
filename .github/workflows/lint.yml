@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  VENV_DIR: /home/runner/work/_temp/_github_workflow
+
 jobs:
   lint:
     name: Lint Code Base
@@ -25,6 +28,10 @@ jobs:
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
+
+      - name: Install dependencies with pip + requirements.txt
+        shell: bash
+        run: pip install -r requirements.txt
 
       - name: Lint Code Base
         uses: github/super-linter@v4

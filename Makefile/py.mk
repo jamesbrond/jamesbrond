@@ -60,7 +60,7 @@ $(LOCALES_DIR)/$(ln)/LC_MESSAGES/$(PACKAGE).po: $(LOCALES_DIR)/$(PACKAGE).pot
 ifdef ln
 	@$(call log,$(PY_PREFIX),Create empty locale $(@))
 	@mkdir -p $(LOCALES_DIR)/$(ln)/LC_MESSAGES
-	@-cp $(@) $(@:.po=-$(now).bak) > /dev/null 2>&1 || true
+	-@cp $(@) $(@:.po=-$(now).bak) > /dev/null 2>&1 || true
 	@cp $(<) $(@)
 else
 	@$(call prompt-error,Missing language: set it with ln=LANG. Example ln=it)
@@ -82,9 +82,9 @@ clean::
 
 py-clean-gettext: ## Remove generated and bytecode-compiled locales files
 	@$(call log,$(PY_PREFIX),Removing pot file "$(LOCALES_DIR)/$(PACKAGE).pot")
-	@-rm $(LOCALES_DIR)/$(PACKAGE).pot
+	-@rm $(LOCALES_DIR)/$(PACKAGE).pot
 	@$(call log,$(PY_PREFIX),Removing compiled locale translations files)
-	@-rm $(LANG_OBJS)
+	-@rm $(LANG_OBJS)
 
 clean-deep:: py-clean-gettext
 	@$(call log,$(PY_PREFIX),Removing virtual environment)

@@ -6,6 +6,7 @@
 # required variables:
 # - SRC_DIR (where all docker configuration and volumes are)
 # - SERVICES
+# - BUILD_DIR
 
 # optional variables:
 # - LOG_LINES
@@ -17,27 +18,28 @@ SHELL     ?= /bin/bash
 
 service:=
 service_shell:=bash
-DC_BUILD_DIR  := build/docker_compose
-
+DC_BUILD_DIR  := $(BUILD_DIR)/docker_compose
+DC_LOG_PREF   := DockerCompose
 
 DOKER_COMPOSE_OBJ=$(DC_BUILD_DIR)/docker-compose.yml
 
-
-docker_compose = $(call exec_in,$(DC_BUILD_DIR),$(1))
+docker_compose = $(call exec_in,$(DC_BUILD_DIR),$1)
 
 $(DC_BUILD_DIR):
-	mkdir -p $@
+	@$(call log-debug,$(DC_LOG_PREF),make directory $@)
+	@mkdir -p $@
 
-$(DOKER_COMPOSE_OBJ): $(DC_BUILD_DIR)
+$(DOKER_COMPOSE_OBJ): | $(DC_BUILD_DIR)
 	@cp $(SRC_DIR)/docker-compose.yml $(DC_BUILD_DIR)
 
 $(SERVICES): $(DOKER_COMPOSE_OBJ)
-	@$(call prompt-info,Make service $@)
+	@$(call log-debug,$(DC_LOG_PREF),Make service $@)
 	@$(MAKE) -C $(SRC_DIR)/$@ compose
 
-dc-compose: $(DOKER_COMPOSE_OBJ) $(SERVICES) ## Move the docker-compose YAML file and all the dockers environment in the build dir where run it
+# Move the docker-compose YAML file and all the dockers environment in the build dir where run it
+compile:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
 
-dc-clean: dc-stop ## Stop the docker compose services and clean build folder
+clean:: dc-stop
 	-@rm -rf $(DC_BUILD_DIR)
 
 dc-run: dc-compose ## Run all the services in the foreground
@@ -68,4 +70,3 @@ dc-ls: ## Lists containers
 
 dc-reload: ## Restarts all stopped and running services or a single service (service=<service_name>)
 	$(call docker_compose,docker-compose restart $(service))
-

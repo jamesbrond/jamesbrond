@@ -6,6 +6,7 @@
 # required variables:
 # DOCKER_TAG
 # CONTAINER_NAME
+# BUILD_DIR
 
 # optional variables:
 # - BUILD_TYPE
@@ -22,24 +23,33 @@ SHELL_TYPE ?= bash
 
 FULL_CONTAINER_NAME := $(CONTAINER_NAME)_$(BUILD_TYPE)
 
+DOCKER_BUILD_DIR := $(BUILD_DIR)/docker
+DOCKER_LOG_PREF  := DOCKER
+
 
 define docker
-	@$(prompt-log Run: $(1))
-	cd $(BUILD_DIR) && $(1) || true
+	$(call log-debug,$(DOCKER_LOG_PREF),Run: $1)
+	cd $(DOCKER_BUILD_DIR) && $1 || true
 endef
 
+$(DOCKER_BUILD_DIR):
+	@$(call log-debug,$(DOCKER_LOG_PREF),make directory $@)
+	@mkdir -p $@
 
-clean-docker-container: ## Remove previous container
+clean-release::
+	@$(call log-debug,$(DOCKER_LOG_PREF),Remove container)
 	@docker rm -f $(FULL_CONTAINER_NAME) 2>/dev/null \
 	&& echo Container for "$(FULL_CONTAINER_NAME)" removed \
 	|| echo Container for "$(FULL_CONTAINER_NAME)" already removed or not found
 
-clean-docker-image: ## Remove created image
+clean-deep::
+	@$(call log-debug,$(DOCKER_LOG_PREF),Remove created image)
 	@docker rmi $(DOCKER_TAG) 2>/dev/null \
 	&& echo Image(s) for "$(DOCKER_TAG)" removed \
 	|| echo Image(s) for "$(DOCKER_TAG)" already removed or not found
 
-docker-build: ## Build the dockerfile
+compile::
+	@$(call log-debug,$(DOCKER_LOG_PREF),Build the dockerfile)
 	docker build --pull=$(PULL) --no-cache=$(NO_CACHE) -t $(DOCKER_TAG) .
 
 docker-show: ## Show running containers

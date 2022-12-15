@@ -83,26 +83,18 @@ ON_IPURPLE=\033[0;105m
 ON_ICYAN=\033[0;106m
 ON_IWHITE=\033[0;107m
 
-# echoclr,COLOR,TEXT
-# example: $(call echoclr,$(WHITE),Hello world)
-echoclr = echo -e "$(1)$(2)$(COLOR_OFF)"
+# echoclr,COLOR_TXT,TEXT
+# examples: $(call echoclr,WHITE,Hello world)
+# examples: $(call echoclr,ON_IWHITE,Hello world)
+echoclr = echo -e "$($1)$(2)$(COLOR_OFF)"
 
-# prompt-%,TEXT
-prompt-success = $(call echoclr,$(GREEN),$(1))
-prompt-error   = $(call echoclr,$(RED),$(1))
-prompt-warn    = $(call echoclr,$(YELLOW),$(1))
-prompt-info    = $(call echoclr,$(BLUE),$(1))
-prompt-log     = $(call echoclr,$(BLACK),$(1))
-prompt-done    = $(call echoclr,$(BLUE),$(1) done\n)
-
-# log-%,PREFIX,TEXT
-log-success = $(call echoclr,$(GREEN),[$(1)] $(2))
-log-error   = $(call echoclr,$(RED),[$(1)] $(2))
-log-warn    = $(call echoclr,$(YELLOW),[$(1)] $(2))
-log-info    = $(call echoclr,$(BLUE),[$(1)] $(2))
-log         = $(call echoclr,$(BLACK),[$(1)] $(2))
-log-done    = $(call echoclr,$(BLUE),[$(1)] $(2) done\n)
-
+# log-%,PREFIX?,TEXT
+log  = echo -ne "$($1)"; if [ -z "$(2)" ]; then echo -n "$3"; else echo -n "[$2] $3"; fi; echo -e "$(COLOR_OFF)"
+log-success = $(call log,GREEN,$1,$2)
+log-error   = $(call log,RED,$1,$2)
+log-warn    = $(call log,YELLOW,$1,$2)
+log-info    = $(call log,BLUE,$(1),$(2))
+log-debug   = $(call log,BLACK,$1,$2)
 
 # Random UUID generator
 uuid = $(shell uuidgen)
@@ -117,12 +109,12 @@ now = $(shell date '+%Y%m%d%H%M%S')
 # usage file_replace,folder,files,find_str,replace_str
 # example $(call file_replace,build,*,OLD_STR,NEW_STR))
 # example $(call file_replace,docs,example.txt,OLD_STR,NEW_STR))
-file_replace = /usr/bin/find "$(1)" -name "$(2)" -type f -exec sed -i "s/$(3)/$(4)/g" {} \;
+file_replace = /usr/bin/find "$1" -name "$2" -type f -exec sed -i "s/$3/$4/g" {} \;
 
 # Execute command in specific folder
 # usare exec_in,folder,command
 # example $(call exec_in,$(BUILD_DIR),docker-compose up)
-exec_in = cd "$(1)"; $(2)
+exec_in = cd "$1" && $2
 
 
 help: ## Show Makefile help
