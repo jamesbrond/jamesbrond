@@ -14,7 +14,6 @@
 
 PACKAGE              ?= $(shell basename $$PWD)
 
-SOURCE_DIST_DIR      := $(DIST_DIR)/source
 
 GIT_CURRENT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_MAIN_BRANCH      := main
@@ -26,19 +25,18 @@ else
 	GIT_RELEASE_REV  := 0
 endif
 GIT_SRCS             := $(shell git ls-files)
-
-SOURCE_OBJ_NAME      := $(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV)
-SOURCE_STABLE_OBJ    := $(SOURCE_DIST_DIR)/$(SOURCE_OBJ_NAME).tar.bz2
-SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(SOURCE_OBJ_NAME)-unstaged.tar.bz2
-SOURCE_STAGED_OBJ    := $(SOURCE_DIST_DIR)/$(SOURCE_OBJ_NAME).tar.bz2
-
 GIT_LOG_PREF         := GIT
+
+SOURCE_DIST_DIR      := $(DIST_DIR)/source
+SOURCE_STABLE_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.bz2
+SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-UNSTABLE.tar.bz2
+SOURCE_STAGED_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-SCREENSHOT.tar.bz2
 
 git_checkout = git checkout $1 --quiet
 git_stash    = git stash --include-untracked --quiet
 git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet
 
-zip_create   = tar -X .gitignore --exclude='.git' -jcf $1 .
+source_zip   = tar --transform=s,.,$(PACKAGE), --exclude-vcs-ignores --exclude-vcs -jcf $1 .
 
 ifdef VERSION_FILE
 	ifdef VERSION_EXP
@@ -54,8 +52,8 @@ endif
 
 .PHONY: clean-source-dist git-release source-zip-release source-zip-unstaged source-zip
 
-$(SOURCE_DIST_DIR): | $(SOURCE_DIST_DIR)
-	@$(call log-debug,$(GIT_LOG_PREF),make directory $@)
+$(SOURCE_DIST_DIR):
+	@$(call log-debug,$(GIT_LOG_PREF),make '$@' folder)
 	@mkdir -p $@
 
 $(SOURCE_STABLE_OBJ): | $(SOURCE_DIST_DIR)
@@ -63,27 +61,28 @@ ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
 	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
 	@$(git_stash)
 	@$(call git_checkout,$(GIT_RELEASE_BRANCH))
-	@$(call zip_create,$@)
+	@$(call source_zip,$@)
 	@$(call git_checkout,$(GIT_CURRENT_BRANCH))
 	@$(git_unstash)
 endif
 
 $(SOURCE_UNSTABLE_OBJ): $(GIT_SRCS) | $(SOURCE_DIST_DIR)
 	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
-	@$(call zip_create,$@)
+	@$(call source_zip,$@)
 
 $(SOURCE_STAGED_OBJ): | $(SOURCE_DIST_DIR)
 	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
 	@$(git_stash)
-	@$(call zip_create,$@)
+	@$(call source_zip,$@)
 	@$(git_unstash)
 
-clean-release::
-	@$(call log-debug,$(GIT_LOG_PREF),Removing output zip files)
-	@-rm -f $(SOURCE_DIST_DIR)/$(PACKAGE)-*.tar.gz
+clean::
+	@$(call log-debug,$(GIT_LOG_PREF),Removing output source files)
+	-@rm -f $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-*.tar.bz2
 
-clean-deep::
-	@-rm -d $(SOURCE_DIST_DIR)
+distclean:: clean
+	@$(call log-debug,$(GIT_LOG_PREF),deleting '$(SOURCE_DIST_DIR)' folder)
+	-@rm -d $(SOURCE_DIST_DIR)
 
 git-release: ## Ask for new git tag, update version and push it to github (releases are in branch main only)
 	@$(call log-info,$(GIT_LOG_PREF),Last release: $(GIT_RELEASE_BRANCH))
@@ -100,8 +99,10 @@ git-release: ## Ask for new git tag, update version and push it to github (relea
 
 source-stable: $(SOURCE_STABLE_OBJ) ## Create a distributable zip of the latest stable release
 
-source-unstaged: $(SOURCE_UNSTABLE_OBJ) ## Create a distributable zip of current branch (with unstaged changes)
+source-unstable: $(SOURCE_UNSTABLE_OBJ) ## Create a distributable zip of current branch (with unstaged changes)
 
 source: $(SOURCE_STAGED_OBJ) ## Create a distributable zip of current branch (without unstaged changes)
+
+# dist:: source-stable
 
 # ~@:-]

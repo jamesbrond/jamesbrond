@@ -89,11 +89,11 @@ ON_IWHITE=\033[0;107m
 echoclr = echo -e "$($1)$(2)$(COLOR_OFF)"
 
 # log-%,PREFIX?,TEXT
-log  = echo -ne "$($1)"; if [ -z "$(2)" ]; then echo -n "$3"; else echo -n "[$2] $3"; fi; echo -e "$(COLOR_OFF)"
+log  = echo -e "$($1)[$2] $3$(COLOR_OFF)"
 log-success = $(call log,GREEN,$1,$2)
 log-error   = $(call log,RED,$1,$2)
 log-warn    = $(call log,YELLOW,$1,$2)
-log-info    = $(call log,BLUE,$(1),$(2))
+log-info    = $(call log,BLUE,$1,$2)
 log-debug   = $(call log,BLACK,$1,$2)
 
 # Random UUID generator

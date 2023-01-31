@@ -36,14 +36,12 @@ $(LATEX_DIST_DIR)/%.pdf: $(LATEX_BUILD_DIR)/%.pdf | $(LATEX_DIST_DIR)
 	@$(call log-info,$(LATEX_LOG_PREF),promove PDF $@ to dist)
 	@cp $< $@
 
-clean-deep::
+distclean::
+	@$(call log-info,$(LATEX_LOG_PREF),removing pdf output files)
+	-@rm -rf $(LATEX_DIST_OBJS)
 	@$(call log-info,$(LATEX_LOG_PREF),deep clean of latex solution)
 	-@rm -rf $(LATEX_BUILD_DIR)
 	-@rm -rf $(LATEX_DIST_DIR)
-
-clean-release::
-	@$(call log-info,$(LATEX_LOG_PREF),removing pdf output files)
-	-@rm -rf $(LATEX_DIST_OBJS)
 
 clean::
 	@$(call log-info,$(LATEX_LOG_PREF),removing temporary generated latex files)
@@ -63,7 +61,7 @@ clean::
 	-@rm -f $(LATEX_BUILD_DIR)/*.{run.xml,acn,acr,alg,ist,synctex*,alg}
 	-@rm -f $(LATEX_MAIN_OBJS)
 
-compile:: $(LATEX_MAIN_OBJS)
+build:: $(LATEX_MAIN_OBJS)
 
 release:: latex-compile $(LATEX_DIST_OBJS)
 

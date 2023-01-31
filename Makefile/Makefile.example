@@ -1,29 +1,18 @@
-# This is an example of Makefile
+BUILD_DIR    := build
+DIST_DIR     := dist
+LOCALES_DIR  := locales
+PACKAGE      := todoist_template
+PYTHON       := /usr/bin/python3.10
+VERSION_FILE := lib/__version__.py
+VERSION_EXP  := (__version__ = \")[0-9\.]+
+NG_DIR       := ui
 
-# global variables
-BUILD_DIR       := .build
-DIST_DIR        := dist
-PACKAGE         := PackageName
-# latex variables
-CHKTEX          := chktex
-LATEX_MAIN_SRCS := $(wildcard *.tex)
-LATEXMK         := latexmk
-PDF_READER      := sumatrapdf
-# python variables
-LOCALES_DIR     :=
-# git variables
-VERSION_EXP     := [0-9\.]+
-VERSION_FILE    := .version
-# angular variables
-NG_DIR          := web
+SHELL:=/bin/bash
 
 -include .make/misc.mk
-ifeq (,$(filter clean clean-%,$(MAKECMDGOALS)))
--include .make/latex.mk
 -include .make/git.mk
 -include .make/py.mk
 -include .make/angular.mk
-endif
 
 .make:
 	@echo "make directory .make"
@@ -34,37 +23,26 @@ endif
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
 
+.PHONY: clean distclean dist
+.DEFAULT_GOAL := help
 
-PHONY: clean clean-deep clean-release compile release lint
-.DEFAULT_GOAL := compile
 
-
-clean:: ## Cleans leftover build files but leaves dependencies untouched
+build:: ## Compile the entire program
 	@$(call log-info,MAKE,$@ done)
 
-clean-release:: ## Cleans generated outputs but leaves dependencies untouched
-# @$(call prompt-info,$@> done)
+clean:: ## Delete all files created by this makefile, however don’t delete the files that record configuration or environment
+	@$(call log-info,MAKE,$@ done)
 
-clean-deep:: clean clean-release ## Cleans up the entire solutions
+distclean:: clean ## Delete all files in the current directory (or created by this makefile) that are created by configuring or building the program
 	@-rm -rf $(BUILD_DIR)
 	@-rm -rf $(DIST_DIR)
-	@-rm -rf .make
+# @-rm -rf .make
 	@$(call log-info,MAKE,$@ done)
 
-lint:: ## Lint solution
+dist:: build ## Create a distribution file or files for this program
 	@$(call log-info,MAKE,$@ done)
 
-compile:: ## Compile the entire solution
-	@$(call log-info,MAKE,$@ done)
-
-release:: ## Create distributable
-	@$(call log-info,MAKE,$@ done)
-
-run:: ## Run application
-	@$(call log-info,MAKE,$@ done)
-
-test::
-	echo $(NG_RELPATH)
+lint:: ## Perform static linting
 	@$(call log-info,MAKE,$@ done)
 
 # ~@:-]
