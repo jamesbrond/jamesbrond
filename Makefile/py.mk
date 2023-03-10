@@ -66,4 +66,13 @@ lint:: $(PY_DEPS_PYLINT) $(PY_DEPS_FLAKE8)
 	@$(call log-debug,$(PY_LOG_PREF),Running pylint)
 	@$(call pyenv,python -m pylint  --recursive=y --rcfile=.github/linters/pylint.toml $(PY_SRCS)) && $(call log-success,$(PY_LOG_PREF),pylint lint pass) || $(call log-error,$(PY_LOG_PREF),pylint lint failed)
 
+test::
+	@$(call log-debug,$(PY_LOG_PREF),Running unit tests)
+	@$(call pyenv,python -m unittest -v)
+
+coverage:: $(PY_DEPS_COVERAGE)
+	@$(call log-debug,$(PY_LOG_PREF),Coverage)
+	@$(call pyenv,coverage run -m unittest)
+	@$(call pyenv,coverage report)
+
 # ~@:-]
