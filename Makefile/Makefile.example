@@ -1,11 +1,13 @@
-BUILD_DIR    := build
+BUILD_DIR    := .build
 DIST_DIR     := dist
 LOCALES_DIR  := locales
-PACKAGE      := todoist_template
+PACKAGE      := testpkg
 PYTHON       := /usr/bin/python3.10
-VERSION_FILE := lib/__version__.py
-VERSION_EXP  := (__version__ = \")[0-9\.]+
+VERSION_FILE := .version
+VERSION_EXP  := [0-9\.]+
 NG_DIR       := ui
+
+DIRS := $(BUILD_DIR) $(DIST_DIR)
 
 SHELL:=/bin/bash
 
@@ -23,9 +25,12 @@ SHELL:=/bin/bash
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
 
-.PHONY: clean distclean dist
+.PHONY: build clean distclean dist lint test
 .DEFAULT_GOAL := help
 
+$(DIRS)::
+	@$(call log-debug,MAKE,make '$@' folder)
+	@mkdir -p $@
 
 build:: ## Compile the entire program
 	@$(call log-info,MAKE,$@ done)
@@ -43,6 +48,9 @@ dist:: build ## Create a distribution file or files for this program
 	@$(call log-info,MAKE,$@ done)
 
 lint:: ## Perform static linting
+	@$(call log-info,MAKE,$@ done)
+
+test:: build ## Unit test
 	@$(call log-info,MAKE,$@ done)
 
 # ~@:-]

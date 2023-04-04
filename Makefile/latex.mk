@@ -20,13 +20,10 @@ LATEX_LOG_PREF   := LATEX
 
 LATEX_OPTS := -pdflatex="lualatex %O %S" -pdf -dvi- -ps- --halt-on-error --interaction=nonstopmode --output-directory=$(LATEX_BUILD_DIR) --output-format=pdf
 
+DIRS := $(DIRS) $(LATEX_BUILD_DIR) $(LATEX_DIST_DIR)
 
 .PHONY: clean-dist clean compile lint read-pdf release
 
-
-$(LATEX_BUILD_DIR) $(LATEX_DIST_DIR):
-	@$(call log-debug,$(LATEX_LOG_PREF),make directory $@)
-	@mkdir -p $@
 
 $(LATEX_BUILD_DIR)/%.pdf: %.tex $(LATEX_SRCS) | $(LATEX_BUILD_DIR)
 	@$(call log-info,$(LATEX_LOG_PREF),creating PDF $@)
@@ -63,7 +60,7 @@ clean::
 
 build:: $(LATEX_MAIN_OBJS)
 
-release:: latex-compile $(LATEX_DIST_OBJS)
+dist:: latex-compile $(LATEX_DIST_OBJS)
 
 lint:: $(LATEX_SRCS)
 # Uses chktex (https://www.nongnu.org/chktex/ChkTeX.pdf)

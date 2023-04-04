@@ -29,10 +29,7 @@ NG_RELPATH   := $(shell SOURCE="$(ROOT_DIR)/$(NG_DIR)/"; \
 
 NG_LOG_PREF   := NG
 
-
-$(NG_BUILD_DIR) $(NG_DIST_DIR):
-	@$(call log-debug,$(NG_LOG_PREF),make '$@' folder)
-	@mkdir -p $@
+DIRS := $(DIRS) $(NG_BUILD_DIR) $(NG_DIST_DIR)
 
 $(NG_OBJ): $(NG_SRCS) | $(NG_BUILD_DIR)
 	@$(call log-debug,$(NG_LOG_PREF),Build Angular UI)

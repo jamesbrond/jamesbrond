@@ -7,89 +7,82 @@
 # optional variables:
 #
 
-
 .PHONY: help
 
 # Reset
-COLOR_OFF=\033[0m
+CLR_PRF=\033[
+CLR_OFF=$(CLR_PRF)0m
 
-# Regular Colors
-BLACK=\033[0;30m
-RED=\033[0;31m
-GREEN=\033[0;32m
-YELLOW=\033[0;33m
-BLUE=\033[0;34m
-PURPLE=\033[0;35m
-CYAN=\033[0;36m
-WHITE=\033[0;37m
+FONT_BOLD   = 1# Bold
+FONT_UNDL   = 4# Underline
+# 10 	Primary(default) font
+# 11–19 	Alternate font
+FONT_FRAMED = 51# Framed
+FONT_ENC    = 52# Encircled
+FONT_OVRLN  = 53# Overlined
 
-# Bold
-BBLACK=\033[1;30m
-BRED=\033[1;31m
-BGREEN=\033[1;32m
-BYELLOW=\033[1;33m
-BBLUE=\033[1;34m
-BPURPLE=\033[1;35m
-BCYAN=\033[1;36m
-BWHITE=\033[1;37m
+# Foreground regular colors
+BLACK       = 30
+RED         = 31
+GREEN       = 32
+YELLOW      = 33
+BLUE        = 34
+PURPLE      = 35
+CYAN        = 36
+WHITE       = 37
 
-# Underline
-UBLACK=\033[4;30m
-URED=\033[4;31m
-UGREEN=\033[4;32m
-UYELLOW=\033[4;33m
-UBLUE=\033[4;34m
-UPURPLE=\033[4;35m
-UCYAN=\033[4;36m
-UWHITE=\033[4;37m
+# Background regular colors
+ON_BLACK    = 40
+ON_RED      = 41
+ON_GREEN    = 42
+ON_YELLOW   = 43
+ON_BLUE     = 44
+ON_PURPLE   = 45
+ON_CYAN     = 46
+ON_WHITE    = 47
 
-# Background
-ON_BLACK=\033[40m
-ON_RED=\033[41m
-ON_GREEN=\033[42m
-ON_YELLOW=\033[43m
-ON_BLUE=\033[44m
-ON_PURPLE=\033[45m
-ON_CYAN=\033[46m
-ON_WHITE=\033[47m
+# Foreground bright colors (aixterm not in standard)
+IBLACK      = 90
+IRED        = 91
+IGREEN      = 92
+IYELLOW     = 93
+IBLUE       = 94
+IPURPLE     = 95
+ICYAN       = 96
+IWHITE      = 97
 
-# High Intensity
-IBLACK=\033[0;90m
-IRED=\033[0;91m
-IGREEN=\033[0;92m
-IYELLOW=\033[0;93m
-IBLUE=\033[0;94m
-IPURPLE=\033[0;95m
-ICYAN=\033[0;96m
-IWHITE=\033[0;97m
+# Background bright colors (aixterm not in standard)
+ON_IBLACK   = 100
+ON_IRED     = 101
+ON_IGREEN   = 102
+ON_IYELLOW  = 103
+ON_IBLUE    = 104
+ON_IPURPLE  = 105
+ON_ICYAN    = 106
+ON_IWHITE   = 107
 
-# Bold High Intensity
-BIBLACK=\033[1;90m
-BIRED=\033[1;91m
-BIGREEN=\033[1;92m
-BIYELLOW=\033[1;93m
-BIBLUE=\033[1;94m
-BIPURPLE=\033[1;95m
-BICYAN=\033[1;96m
-BIWHITE=\033[1;97m
-
-# High Intensity backgrounds
-ON_IBLACK=\033[0;100m
-ON_IRED=\033[0;101m
-ON_IGREEN=\033[0;102m
-ON_IYELLOW=\033[0;103m
-ON_IBLUE=\033[0;104m
-ON_IPURPLE=\033[0;105m
-ON_ICYAN=\033[0;106m
-ON_IWHITE=\033[0;107m
 
 # echoclr,COLOR_TXT,TEXT
 # examples: $(call echoclr,WHITE,Hello world)
 # examples: $(call echoclr,ON_IWHITE,Hello world)
-echoclr = echo -e "$($1)$(2)$(COLOR_OFF)"
+echoclr = echo -e "$(CLR_PRF)$($1)m$(2)$(CLR_OFF)"
+
+# echoclr_variant,COLOR_TXT,FONT_VARIANT,TEXT
+# examples: $(call echoclr_variant,WHITE,FONT_UNDL,Hello world)
+# examples: $(call echoclr_variant,ON_IWHITE,FONT_BOLD;Hello world)
+echoclr_variant = echo -e "$(CLR_PRF)$($1);$($2)m$(3)$(CLR_OFF)"
+
+# echobkgclr,COLOR_TXT,BACKGROUND_COLOR,TEXT
+# examples: $(call echoclrbkg,WHITE,ON_RED,Hello world)
+# examples: $(call echoclrbkg,BLUE,ON_IWHITE,Hello world)
+echoclrbkg = echo -e "$(CLR_PRF)$($1);$($2)m$(3)$(CLR_OFF)"
+
+# echoclrbkg_varian,COLOR_TXT,BACKGROUND_COLOR,FONT_VARIANT,TEXT
+# examples: $(call echoclrbkg_variant,WHITE,ON_RED,FONT_BOLD,Hello world)
+echoclrbkg_variant = echo -e "$(CLR_PRF)$($1);$($2);$($3)m$(4)$(CLR_OFF)"
 
 # log-%,PREFIX?,TEXT
-log  = echo -e "$($1)[$2] $3$(COLOR_OFF)"
+log  = echo -e "$(CLR_PRF)$($1)m[$2] $3$(CLR_OFF)"
 log-success = $(call log,GREEN,$1,$2)
 log-error   = $(call log,RED,$1,$2)
 log-warn    = $(call log,YELLOW,$1,$2)
@@ -119,6 +112,6 @@ exec_in = cd "$1" && $2
 
 help: ## Show Makefile help
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
-	@grep -E -h '^[a-zA-Z_\.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(BLUE)%-20s$(COLOR_OFF) %s\n", $$1, $$2}'
+	@grep -E -h '^[a-zA-Z_\.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(CLR_PRF)$(BLUE)m%-20s$(CLR_OFF) %s\n", $$1, $$2}'
 
 # ~@:-]

@@ -10,7 +10,13 @@
 # - PACKAGE
 
 VENV_DIR       := .venv
-ACTIVATE       := $(VENV_DIR)/bin/activate
+ifdef OS
+   ACTIVATE = $(VENV_DIR)/Scripts/activate
+else
+   ifeq ($(shell uname), Linux)
+      ACTIVATE = $(VENV_DIR)/bin/activate
+   endif
+endif
 PACKAGE        ?= $(shell basename $$PWD)
 PY_SRCS        := $(shell git ls-files | grep ".*\.py$$")
 REQUIREMENTS   := requirements.txt
@@ -22,7 +28,6 @@ PY_DEPS_FLAKE8 := $(PY_DEPS_DIR)/flake8
 do_activate   = [[ -z "$$VIRTUAL_ENV" ]] && . $(ACTIVATE) || true
 pyenv         = $(do_activate) && $(1)
 
-
 .PHONY: --py-clean clean build distclean lint
 
 $(ACTIVATE):
@@ -32,6 +37,7 @@ $(ACTIVATE):
 # https://docs.python.org/3/library/venv.html
 	@$(call log-debug,$(PY_LOG_PREF),Creating virtual environment)
 	@$(PYTHON) -m venv $(VENV_DIR)
+	@sed -ie 's/\r$$//g' $(ACTIVATE)
 	@chmod u+x $(ACTIVATE)
 	@$(call log-debug,$(PY_LOG_PREF),Upgrading pip)
 	@$(call pyenv,pip install --upgrade pip)

@@ -14,7 +14,6 @@
 
 PACKAGE              ?= $(shell basename $$PWD)
 
-
 GIT_CURRENT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_MAIN_BRANCH      := main
 GIT_RELEASE_BRANCH   := $(shell git describe --tags --abbrev=0 2>/dev/null)
@@ -28,15 +27,23 @@ GIT_SRCS             := $(shell git ls-files)
 GIT_LOG_PREF         := GIT
 
 SOURCE_DIST_DIR      := $(DIST_DIR)/source
-SOURCE_STABLE_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tar.bz2
-SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-UNSTABLE.tar.bz2
-SOURCE_STAGED_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-SCREENSHOT.tar.bz2
+SOURCE_STABLE_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tgz
+SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-UNSTABLE.tgz
+SOURCE_STAGED_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-SCREENSHOT.tgz
+DIRS                 := $(DIRS) $(SOURCE_DIST_DIR)
 
 git_checkout = git checkout $1 --quiet
 git_stash    = git stash --include-untracked --quiet
 git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet
 
-source_zip   = tar --transform=s,.,$(PACKAGE), --exclude-vcs-ignores --exclude-vcs -jcf $1 .
+ifdef OS
+# source_zip = 7z a -t7z $1 $(GIT_SRCS)
+	source_zip = 7z a -ttar -so source.tar $(GIT_SRCS) | 7z a -si $1
+else
+	source_zip = tar -czf $1 $(GIT_SRCS)
+endif
+
+
 
 ifdef VERSION_FILE
 	ifdef VERSION_EXP
@@ -50,11 +57,7 @@ else
 	git_update_version = $(call log-warn,$(GIT_LOG_PREF),VERSION_FILE is not defined)
 endif
 
-.PHONY: clean-source-dist git-release source-zip-release source-zip-unstaged source-zip
-
-$(SOURCE_DIST_DIR):
-	@$(call log-debug,$(GIT_LOG_PREF),make '$@' folder)
-	@mkdir -p $@
+.PHONY: git-release source-stable source-unstable source
 
 $(SOURCE_STABLE_OBJ): | $(SOURCE_DIST_DIR)
 ifneq ($(strip $(GIT_RELEASE_BRANCH)),)

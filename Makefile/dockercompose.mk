@@ -23,11 +23,9 @@ DC_LOG_PREF   := DockerCompose
 
 DOKER_COMPOSE_OBJ=$(DC_BUILD_DIR)/docker-compose.yml
 
-docker_compose = $(call exec_in,$(DC_BUILD_DIR),$1)
+DIRS := $(DIRS) $(DC_BUILD_DIR)
 
-$(DC_BUILD_DIR):
-	@$(call log-debug,$(DC_LOG_PREF),make directory $@)
-	@mkdir -p $@
+docker_compose = $(call exec_in,$(DC_BUILD_DIR),$1)
 
 $(DOKER_COMPOSE_OBJ): | $(DC_BUILD_DIR)
 	@cp $(SRC_DIR)/docker-compose.yml $(DC_BUILD_DIR)
@@ -37,7 +35,7 @@ $(SERVICES): $(DOKER_COMPOSE_OBJ)
 	@$(MAKE) -C $(SRC_DIR)/$@ compose
 
 # Move the docker-compose YAML file and all the dockers environment in the build dir where run it
-compile:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
+build:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
 
 clean:: dc-stop
 	-@rm -rf $(DC_BUILD_DIR)

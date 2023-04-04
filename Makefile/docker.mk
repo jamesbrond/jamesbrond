@@ -26,29 +26,27 @@ FULL_CONTAINER_NAME := $(CONTAINER_NAME)_$(BUILD_TYPE)
 DOCKER_BUILD_DIR := $(BUILD_DIR)/docker
 DOCKER_LOG_PREF  := DOCKER
 
+DIRS := $(DIRS) $(DOCKER_BUILD_DIR)
+
 
 define docker
 	$(call log-debug,$(DOCKER_LOG_PREF),Run: $1)
 	cd $(DOCKER_BUILD_DIR) && $1 || true
 endef
 
-$(DOCKER_BUILD_DIR):
-	@$(call log-debug,$(DOCKER_LOG_PREF),make directory $@)
-	@mkdir -p $@
-
-clean-release::
+clean::
 	@$(call log-debug,$(DOCKER_LOG_PREF),Remove container)
 	@docker rm -f $(FULL_CONTAINER_NAME) 2>/dev/null \
 	&& echo Container for "$(FULL_CONTAINER_NAME)" removed \
 	|| echo Container for "$(FULL_CONTAINER_NAME)" already removed or not found
 
-clean-deep::
+distclean::
 	@$(call log-debug,$(DOCKER_LOG_PREF),Remove created image)
 	@docker rmi $(DOCKER_TAG) 2>/dev/null \
 	&& echo Image(s) for "$(DOCKER_TAG)" removed \
 	|| echo Image(s) for "$(DOCKER_TAG)" already removed or not found
 
-compile::
+build::
 	@$(call log-debug,$(DOCKER_LOG_PREF),Build the dockerfile)
 	docker build --pull=$(PULL) --no-cache=$(NO_CACHE) -t $(DOCKER_TAG) .
 
