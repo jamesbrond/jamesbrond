@@ -10,14 +10,13 @@
 
 SHELL:=/bin/bash
 
-ROOT_DIR     := .
 NG_BUILD_DIR := $(BUILD_DIR)/ng
 NG_DIST_DIR := $(DIST_DIR)/www
-NG_SRCS      := $(shell /usr/bin/find $(NG_DIR)/ -name 'node_modules' -type d -prune -o -name '.angular' -type d -prune -name '.vscode' -type d -prune -o -type f -print)
+NG_SRCS      := $(shell /usr/bin/find $(NG_DIR)/ -name 'node_modules' -type d -prune -o -name '.angular' -type d -prune -name '.vscode' -type d -prune -o -type f -print $(NULL_STDERR))
 NG_OBJ       := $(NG_BUILD_DIR)/index.html
-NG_DIST_OBJ  := $(NG_DIST_DIR)/$(PACKAGE)-WEB.tar.bz2
-NG_RELPATH   := $(shell SOURCE="$(ROOT_DIR)/$(NG_DIR)/"; \
-	TARGET="$(ROOT_DIR)/"; \
+NG_DIST_OBJ  := $(NG_DIST_DIR)/$(PACKAGE)-WEB.tgz
+NG_RELPATH   := $(shell SOURCE="$(WORK_DIR)/$(NG_DIR)/"; \
+	TARGET="$(WORK_DIR)/"; \
 	RESULT=''; \
 	while [ "$$SOURCE" ] && [ "$$TARGET" = "$${TARGET\#"$$SOURCE"}" ]; do \
 		SOURCE="$${SOURCE%/?*/}/"; \
@@ -29,21 +28,21 @@ NG_RELPATH   := $(shell SOURCE="$(ROOT_DIR)/$(NG_DIR)/"; \
 
 NG_LOG_PREF   := NG
 
-DIRS := $(DIRS) $(NG_BUILD_DIR) $(NG_DIST_DIR)
+DIRS += $(NG_BUILD_DIR) $(NG_DIST_DIR)
 
 $(NG_OBJ): $(NG_SRCS) | $(NG_BUILD_DIR)
 	@$(call log-debug,$(NG_LOG_PREF),Build Angular UI)
 	@$(call exec_in,$(NG_DIR),ng build --configuration=production --output-path $(NG_RELPATH)/$(NG_BUILD_DIR))
 
 $(NG_DIST_OBJ): $(NG_OBJ) | $(NG_DIST_DIR)
-	@tar --transform=s,build/ng,$(PACKAGE), -jcf $(NG_DIST_OBJ) $(NG_BUILD_DIR)
+	@$(call tgzip $(NG_DIST_OBJ),$(NG_BUILD_DIR)/*)
 
 clean::
 	@$(call log-debug,$(NG_LOG_PREF),Removing angular generated files)
-	-@rm -rf $(NG_BUILD_DIR)
+	-@$(RMDIR) $(NG_BUILD_DIR) $(NULL_STDERR)
 
 distclean::
-	@rm -rf $(NG_DIST_DIR)
+	-@$(RMDIR) $(NG_DIST_DIR) $(NULL_STDERR)
 
 build:: $(NG_OBJ)
 

@@ -23,7 +23,7 @@ DC_LOG_PREF   := DockerCompose
 
 DOKER_COMPOSE_OBJ=$(DC_BUILD_DIR)/docker-compose.yml
 
-DIRS := $(DIRS) $(DC_BUILD_DIR)
+DIRS += $(DC_BUILD_DIR)
 
 docker_compose = $(call exec_in,$(DC_BUILD_DIR),$1)
 
@@ -38,7 +38,7 @@ $(SERVICES): $(DOKER_COMPOSE_OBJ)
 build:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
 
 clean:: dc-stop
-	-@rm -rf $(DC_BUILD_DIR)
+	@-$(RMDIR) $(DC_BUILD_DIR) $(NULL_STDERR)
 
 dc-run: dc-compose ## Run all the services in the foreground
 	@$(call docker_compose,docker-compose up)

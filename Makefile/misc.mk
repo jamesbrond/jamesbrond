@@ -9,6 +9,34 @@
 
 .PHONY: help
 
+
+# Default variables
+PACKAGE   ?= $(shell basename $$PWD)
+WORK_DIR  ?= .
+BUILD_DIR ?= $(WORK_DIR)/.build
+DIST_DIR  ?= $(WORK_DIR)/dist
+
+ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
+NULL_STDERR=2>/dev/null
+else
+NULL_STDERR=2>NUL
+endif
+
+touch = touch $(1)
+ifeq (,$(shell command -v touch $(NULL_STDERR)))
+# https://ss64.com/nt/touch.html
+touch = type nul >> $(subst /,\,$(1)) && copy /y /b $(subst /,\,$(1))+,, $(subst /,\,$(1))
+endif
+
+RM ?= rm -f
+ifeq (,$(shell command -v $(firstword $(RM)) $(NULL_STDERR)))
+RMDIR := rd /s /q
+RM := del /q
+else
+RMDIR := $(RM)r
+endif
+
+
 # Reset
 CLR_PRF=\033[
 CLR_OFF=$(CLR_PRF)0m
@@ -108,6 +136,24 @@ file_replace = /usr/bin/find "$1" -name "$2" -type f -exec sed -i "s/$3/$4/g" {}
 # usare exec_in,folder,command
 # example $(call exec_in,$(BUILD_DIR),docker-compose up)
 exec_in = cd "$1" && $2
+
+
+# Create a new tgz file
+# Usage $(call tgzip,zip_filename.tgz,files_list)
+ifeq ($(OS), Windows_NT)
+tgzip = 7z a -ttar -so source.tar $2 | 7z a -si $1
+else
+tgzip = tar -czf $1 $2
+endif
+
+
+# check if current folder is in a valid git working tree
+# Examples:
+# $(if is_git_repo,@echo "This is a git repo")
+# ifeq ($(call is_git_repo),true)
+# ...
+# endif
+is_git_repo = $(shell git rev-parse --is-inside-work-tree)
 
 
 help: ## Show Makefile help

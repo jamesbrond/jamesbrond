@@ -1,26 +1,28 @@
-BUILD_DIR    := .build
-DIST_DIR     := dist
-LOCALES_DIR  := locales
-PACKAGE      := testpkg
-PYTHON       := /usr/bin/python3.10
-VERSION_FILE := .version
-VERSION_EXP  := [0-9\.]+
-NG_DIR       := ui
 
-DIRS := $(BUILD_DIR) $(DIST_DIR)
+WORK_DIR     = .
+MAKE_DIR     = .make
+PACKAGE      := testpkg
+PYTHON       := /path/to/python
+VERSION_FILE := $(WORK_DIR)/.version
+VERSION_EXP  := [0-9\.]+
+NG_DIR       := $(WORK_DIR)/ui
+
+DIRS = $(MAKE_DIR)
 
 SHELL:=/bin/bash
 
--include .make/misc.mk
--include .make/git.mk
--include .make/py.mk
--include .make/angular.mk
+-include $(MAKE_DIR)/misc.mk
+-include $(MAKE_DIR)/git.mk
+-include $(MAKE_DIR)/py.mk
+-include $(MAKE_DIR)/latex.mk
 
-.make:
-	@echo "make directory .make"
-	@mkdir -p $@
+VENV = .venv/bin
+ifeq ($(OS), Windows_NT)
+    VENV = .venv/Scripts
+endif
 
-.make/%.mk: | .make
+
+$(MAKE_DIR)/%.mk: | $(MAKE_DIR)
 	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$$(basename $@)"); \
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
@@ -28,7 +30,7 @@ SHELL:=/bin/bash
 .PHONY: build clean distclean dist lint test
 .DEFAULT_GOAL := help
 
-$(DIRS)::
+$(DIRS):
 	@$(call log-debug,MAKE,make '$@' folder)
 	@mkdir -p $@
 
@@ -39,9 +41,9 @@ clean:: ## Delete all files created by this makefile, however don’t delete the
 	@$(call log-info,MAKE,$@ done)
 
 distclean:: clean ## Delete all files in the current directory (or created by this makefile) that are created by configuring or building the program
-	@-rm -rf $(BUILD_DIR)
-	@-rm -rf $(DIST_DIR)
-# @-rm -rf .make
+	@-$(RMDIR) $(BUILD_DIR) $(NULL_STDERR)
+	@-$(RMDIR) $(DIST_DIR) $(NULL_STDERR)
+	@-$(RMDIR) .make $(NULL_STDERR)
 	@$(call log-info,MAKE,$@ done)
 
 dist:: build ## Create a distribution file or files for this program
@@ -51,6 +53,9 @@ lint:: ## Perform static linting
 	@$(call log-info,MAKE,$@ done)
 
 test:: build ## Unit test
+	@$(call log-info,MAKE,$@ done)
+
+coverage:: build ## Code coverage test
 	@$(call log-info,MAKE,$@ done)
 
 # ~@:-]
