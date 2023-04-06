@@ -16,6 +16,8 @@ ifeq ($(OS), Windows_NT)
 PYENV          = $(VENV_DIR)/Scripts
 endif
 ACTIVATE       = $(PYENV)/activate
+COVERAGE_DIR   = $(BUILD_DIR)/htmlcov
+DIRS           += $(COVERAGE_DIR)
 
 ifeq ($(call is_git_repo),true)
 PY_SRCS          = $(shell git ls-files | grep ".*\.py$$")
@@ -63,7 +65,7 @@ distclean:: clean
 	@-$(RMDIR) $(VENV_DIR) $(NULL_STDERR)
 	@$(call log-debug,$(PY_LOG_PREF),Removing coverage files and folders)
 	@-$(RM) .coverage $(NULL_STDERR)
-	@-$(RMDIR) htmlcov $(NULL_STDERR)
+	@-$(RMDIR) $(COVERAGE_DIR) $(NULL_STDERR)
 
 build:: $(ACTIVATE)
 
@@ -88,9 +90,10 @@ test:: $(ACTIVATE)
 	@$(call log-info,$(PY_LOG_PREF),Running python unit tests)
 	@$(PYENV)/python -m unittest -v
 
-coverage:: $(ACTIVATE) $(PY_DEPS_COVERAGE)
+coverage:: $(ACTIVATE) $(PY_DEPS_COVERAGE) | $(COVERAGE_DIR)
 	@$(call log-info,$(PY_LOG_PREF),Python coverage)
 	@$(PYENV)/coverage run -m unittest
-	@$(PYENV)/coverage report
+	@$(PYENV)/coverage html --skip-empty -q -d $(COVERAGE_DIR) --title $(PACKAGE)
+	@$(PYENV)/coverage report --skip-empty
 
 # ~@:-]

@@ -16,12 +16,6 @@ SHELL:=/bin/bash
 -include $(MAKE_DIR)/py.mk
 -include $(MAKE_DIR)/latex.mk
 
-VENV = .venv/bin
-ifeq ($(OS), Windows_NT)
-    VENV = .venv/Scripts
-endif
-
-
 $(MAKE_DIR)/%.mk: | $(MAKE_DIR)
 	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$$(basename $@)"); \
 	echo "get $$URL"; \
