@@ -67,7 +67,7 @@ distclean:: clean
 	@-$(RM) .coverage $(NULL_STDERR)
 	@-$(RMDIR) $(COVERAGE_DIR) $(NULL_STDERR)
 
-build:: $(ACTIVATE)
+init:: $(ACTIVATE)
 
 lint:: $(ACTIVATE) $(PY_DEPS_FLAKE8) $(PY_DEPS_PYLINT)
 ifneq ($(strip $(PY_SRCS)),)

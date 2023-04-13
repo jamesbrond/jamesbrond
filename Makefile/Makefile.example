@@ -28,6 +28,9 @@ $(DIRS):
 	@$(call log-debug,MAKE,make '$@' folder)
 	@mkdir -p $@
 
+init:: ## Initialize development environment
+	@$(call log-info,MAKE,$@ done)
+
 build:: ## Compile the entire program
 	@$(call log-info,MAKE,$@ done)
 

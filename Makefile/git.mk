@@ -24,11 +24,13 @@ endif
 GIT_SRCS             := $(shell git ls-files)
 GIT_LOG_PREF         := GIT
 
+GIT_HOOKS_DIR        ?= .githooks
+
 SOURCE_DIST_DIR      := $(DIST_DIR)/source
 SOURCE_STABLE_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_RELEASE_REV).tgz
 SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-UNSTABLE.tgz
 SOURCE_STAGED_OBJ    := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(GIT_RELEASE_BRANCH)-$(GIT_CURRENT_REV)-SCREENSHOT.tgz
-DIRS                 += $(SOURCE_DIST_DIR)
+DIRS                 += $(SOURCE_DIST_DIR) $(GIT_HOOKS_DIR)
 
 ifdef VERSION_FILE
 	ifdef VERSION_EXP
@@ -68,6 +70,10 @@ $(SOURCE_STAGED_OBJ): | $(SOURCE_DIST_DIR)
 	@$(git_stash)
 	@$(call tgzip,$@,$(GIT_SRCS))
 	@$(git_unstash)
+
+init:: $(GIT_HOOKS_DIR)
+	@$(call log-debug,$(GIT_LOG_PREF),Set hooks folder $(GIT_HOOKS_DIR) [require git > 2.9])
+	git config core.hooksPath $(GIT_HOOKS_DIR)
 
 clean::
 	@$(call log-debug,$(GIT_LOG_PREF),Removing output source files)
