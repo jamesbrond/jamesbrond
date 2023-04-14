@@ -11,7 +11,7 @@
 SHELL:=/bin/bash
 
 NG_BUILD_DIR := $(BUILD_DIR)/ng
-NG_DIST_DIR := $(DIST_DIR)/www
+NG_DIST_DIR  := $(DIST_DIR)/www
 NG_SRCS      := $(shell /usr/bin/find $(NG_DIR)/ -name 'node_modules' -type d -prune -o -name '.angular' -type d -prune -name '.vscode' -type d -prune -o -type f -print $(NULL_STDERR))
 NG_OBJ       := $(NG_BUILD_DIR)/index.html
 NG_DIST_OBJ  := $(NG_DIST_DIR)/$(PACKAGE)-WEB.tgz
@@ -48,8 +48,8 @@ build:: $(NG_OBJ)
 
 dist:: $(NG_DIST_OBJ)
 
-ng-serve:
-	@$(call log-info,$(NG_LOG_PREF),NG serve)
+ng-serve: ## Builds and serves Angular application, rebuilding on file changes
+	@$(call log-info,$(NG_LOG_PREF),ng serve)
 	@$(call exec_in,$(NG_DIR),ng serve)
 
 lint::

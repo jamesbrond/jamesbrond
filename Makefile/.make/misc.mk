@@ -5,21 +5,24 @@
 #
 
 # optional variables:
-#
-
-.PHONY: help
-
+# - PACKAGE
+# - WORK_DIR
+# - BUILD_DIR
+# - DIST_DIR
 
 # Default variables
 PACKAGE   ?= $(shell basename $$PWD)
 WORK_DIR  ?= .
 BUILD_DIR ?= $(WORK_DIR)/.build
 DIST_DIR  ?= $(WORK_DIR)/dist
+DIRS      ?=
 
 ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
 NULL_STDERR=2>/dev/null
+NULL_STDIO=1>/dev/null
 else
 NULL_STDERR=2>NUL
+NULL_STDIO=1>NUL
 endif
 
 touch = touch $(1)
@@ -36,18 +39,15 @@ else
 RMDIR := $(RM)r
 endif
 
-
 # Reset
 CLR_PRF=\033[
 CLR_OFF=$(CLR_PRF)0m
 
-FONT_BOLD   = 1# Bold
-FONT_UNDL   = 4# Underline
-# 10 	Primary(default) font
-# 11–19 	Alternate font
-FONT_FRAMED = 51# Framed
-FONT_ENC    = 52# Encircled
-FONT_OVRLN  = 53# Overlined
+FONT_BOLD   =  1 # Bold
+FONT_UNDL   =  4 # Underline
+FONT_FRAMED = 51 # Framed
+FONT_ENC    = 52 # Encircled
+FONT_OVRLN  = 53 # Overlined
 
 # Foreground regular colors
 BLACK       = 30
@@ -110,7 +110,7 @@ echoclrbkg = echo -e "$(CLR_PRF)$($1);$($2)m$(3)$(CLR_OFF)"
 echoclrbkg_variant = echo -e "$(CLR_PRF)$($1);$($2);$($3)m$(4)$(CLR_OFF)"
 
 # log-%,PREFIX?,TEXT
-log  = echo -e "$(CLR_PRF)$($1)m[$2] $3$(CLR_OFF)"
+log = echo -e "$(CLR_PRF)$($1)m[$2] $3$(CLR_OFF)"
 log-success = $(call log,GREEN,$1,$2)
 log-error   = $(call log,RED,$1,$2)
 log-warn    = $(call log,YELLOW,$1,$2)
@@ -155,6 +155,8 @@ endif
 # endif
 is_git_repo = $(shell git rev-parse --is-inside-work-tree)
 
+
+.PHONY: help
 
 help: ## Show Makefile help
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html

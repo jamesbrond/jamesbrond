@@ -9,6 +9,8 @@
 # optional variables:
 # - PACKAGE
 # - WORK_DIR
+# - PY_CONF_FLAKE8
+# - PY_CONF_PYLINT
 
 VENV_DIR       := $(WORK_DIR)/.venv
 PYENV          = $(VENV_DIR)/bin
@@ -33,6 +35,8 @@ PY_DEPS_COVERAGE := $(PY_DEPS_DIR)/coverage
 
 PY_CONF_FLAKE8 ?= $(wildcard .flake8)
 PY_CONF_PYLINT ?= $(wildcard .pylint.toml)
+
+.PHONY: coverage
 
 $(ACTIVATE):
 # Create python virtual environment
@@ -90,7 +94,7 @@ test:: $(ACTIVATE)
 	@$(call log-info,$(PY_LOG_PREF),Running python unit tests)
 	@$(PYENV)/python -m unittest -v
 
-coverage:: $(ACTIVATE) $(PY_DEPS_COVERAGE) | $(COVERAGE_DIR)
+coverage: $(ACTIVATE) $(PY_DEPS_COVERAGE) | $(COVERAGE_DIR) ## Code coverage test
 	@$(call log-info,$(PY_LOG_PREF),Python coverage)
 	@$(PYENV)/coverage run -m unittest
 	@$(PYENV)/coverage html --skip-empty -q -d $(COVERAGE_DIR) --title $(PACKAGE)
