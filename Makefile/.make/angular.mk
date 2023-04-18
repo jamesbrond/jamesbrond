@@ -35,14 +35,14 @@ $(NG_OBJ): $(NG_SRCS) | $(NG_BUILD_DIR)
 	@$(call exec_in,$(NG_DIR),ng build --configuration=production --output-path $(NG_RELPATH)/$(NG_BUILD_DIR))
 
 $(NG_DIST_OBJ): $(NG_OBJ) | $(NG_DIST_DIR)
-	@$(call tgzip $(NG_DIST_OBJ),$(NG_BUILD_DIR)/*)
+	@$(call zip $(NG_DIST_OBJ),$(NG_BUILD_DIR)/*)
 
 clean::
 	@$(call log-debug,$(NG_LOG_PREF),Removing angular generated files)
-	-@$(RMDIR) $(NG_BUILD_DIR) $(NULL_STDERR)
+	@-$(RMDIR) $(NG_BUILD_DIR) $(NULL_STDERR)
 
-distclean::
-	-@$(RMDIR) $(NG_DIST_DIR) $(NULL_STDERR)
+distclean:: clean
+	@-$(RMDIR) $(NG_DIST_DIR) $(NULL_STDERR)
 
 build:: $(NG_OBJ)
 

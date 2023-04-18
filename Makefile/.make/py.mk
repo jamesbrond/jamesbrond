@@ -12,51 +12,37 @@
 # - PY_CONF_FLAKE8
 # - PY_CONF_PYLINT
 
-VENV_DIR       := $(WORK_DIR)/.venv
-PYENV          = $(VENV_DIR)/bin
+VENV_DIR        := $(WORK_DIR)/.venv
+PYENV           = $(VENV_DIR)/bin
 ifeq ($(OS), Windows_NT)
-PYENV          = $(VENV_DIR)/Scripts
+	PYENV       = $(VENV_DIR)/Scripts
 endif
-ACTIVATE       = $(PYENV)/activate
-COVERAGE_DIR   = $(BUILD_DIR)/htmlcov
-DIRS           += $(COVERAGE_DIR)
+COVERAGE_DIR    = $(BUILD_DIR)/htmlcov
+DIRS            += $(COVERAGE_DIR)
 
 ifeq ($(call is_git_repo),true)
-PY_SRCS          = $(shell git ls-files | grep ".*\.py$$")
+	PY_SRCS     = $(shell comm -23 <(git ls-files) <(git ls-files --deleted) | grep ".*\.py$$")
 else
-PY_SRCS          = $(shell /usr/bin/find . -path ./$(VENV_DIR) -prune -o -name "*.py" -print)
+	PY_SRCS     = $(shell /usr/bin/find . -path ./$(VENV_DIR) -prune -o -name "*.py" -print)
 endif
-PY_REQUIREMENTS  := $(wildcard requirements.txt)
-PY_LOG_PREF      := PYTHON
-PY_DEPS_DIR      := $(shell /usr/bin/find $(VENV_DIR) -name site-packages $(NULL_STDERR))
-PY_DEPS_PYLINT   := $(PY_DEPS_DIR)/pylint
-PY_DEPS_FLAKE8   := $(PY_DEPS_DIR)/flake8
-PY_DEPS_COVERAGE := $(PY_DEPS_DIR)/coverage
+PY_LOG_PREF     := PYTHON
 
-PY_CONF_FLAKE8 ?= $(wildcard .flake8)
-PY_CONF_PYLINT ?= $(wildcard .pylint.toml)
+PY_REQUIREMENTS ?= $(wildcard requirements.txt)
+PY_DEV_DEPS     := pylint flake8 coverage
+PY_DEV_DEPS_FILE:= $(VENV_DIR)/.install.devdeps.stamp
+PY_CONF_FLAKE8  ?= $(wildcard .flake8)
+PY_CONF_PYLINT  ?= $(wildcard .pylint.toml)
+# py_check_dep = $(shell $(PYENV)/python -c "import $1" $(NULL_STDERR); echo $$?)
 
 .PHONY: coverage
 
-$(ACTIVATE):
+$(PYENV):
 # Create python virtual environment
 # The venv module provides support for creating lightweight "virtual environments" with
 # their own site directories, optionally isolated from system site directories.
 # https://docs.python.org/3/library/venv.html
-	@$(call log-info,$(PY_LOG_PREF),Creating virtual environment)
+	@$(call log-debug,$(PY_LOG_PREF),Creating virtual environment)
 	@$(PYTHON) -m venv $(VENV_DIR)
-	@sed -i 's/\r$$//g' $(ACTIVATE)
-	@chmod u+x $(ACTIVATE)
-	@$(call log-debug,$(PY_LOG_PREF),Upgrading pip)
-	@$(PYENV)/python -m pip install --upgrade pip
-	@$(call log-debug,$(PY_LOG_PREF),Installing dependencies)
-ifneq ($(strip $(PY_REQUIREMENTS)),)
-	@$(PYENV)/pip install -r $(PY_REQUIREMENTS)
-endif
-
-$(PY_DEPS_PYLINT) $(PY_DEPS_FLAKE8) $(PY_DEPS_COVERAGE):
-	@$(call log-debug,$(PY_LOG_PREF),Installing developement requirements $(@F))
-	@$(PYENV)/pip install $(@F)
 
 clean::
 	@$(call log-info,$(PY_LOG_PREF),Clean python)
@@ -71,17 +57,26 @@ distclean:: clean
 	@-$(RM) .coverage $(NULL_STDERR)
 	@-$(RMDIR) $(COVERAGE_DIR) $(NULL_STDERR)
 
-init:: $(ACTIVATE)
+init:: $(PYENV) $(PY_DEV_DEPS_FILE)
+	@sed -i 's/\r$$//g' $(PYENV)/activate
+	@$(call log-debug,$(PY_LOG_PREF),Upgrading pip)
+	@$(PYENV)/python -m pip install --upgrade pip
+ifneq ($(strip $(PY_REQUIREMENTS)),)
+	@$(call log-debug,$(PY_LOG_PREF),Installing dependencies)
+	@$(PYENV)/pip install -r $(PY_REQUIREMENTS)
+endif
 
-lint:: $(ACTIVATE) $(PY_DEPS_FLAKE8) $(PY_DEPS_PYLINT)
+lint:: $(PYENV) $(PY_DEV_DEPS_FILE)
 ifneq ($(strip $(PY_SRCS)),)
 	@$(call log-info,$(PY_LOG_PREF),Running python lint)
+
 	@$(call log-debug,$(PY_LOG_PREF),Running flake8)
 ifeq ($(strip $(PY_CONF_FLAKE8)),)
 	@$(PYENV)/python -m flake8 $(PY_SRCS)
 else
 	@$(PYENV)/python -m flake8 --config $(PY_CONF_FLAKE8) $(PY_SRCS)
 endif
+
 	@$(call log-debug,$(PY_LOG_PREF),Running pylint)
 ifeq ($(strip $(PY_CONF_PYLINT)),)
 	@$(PYENV)/python -m pylint --recursive=y $(PY_SRCS)
@@ -90,14 +85,23 @@ else
 endif
 endif
 
-test:: $(ACTIVATE)
+test:: $(PYENV)
 	@$(call log-info,$(PY_LOG_PREF),Running python unit tests)
 	@$(PYENV)/python -m unittest -v
 
-coverage: $(ACTIVATE) $(PY_DEPS_COVERAGE) | $(COVERAGE_DIR) ## Code coverage test
+coverage: $(PYENV) $(PY_DEV_DEPS_FILE) | $(COVERAGE_DIR) ## Code coverage test
+ifeq (1,$(call py_check_dep,coverage))
+	@$(call log-debug,$(PY_LOG_PREF),Installing developing dependencies)
+	@$(PYENV)/pip install $(PY_DEV_DEPS)
+endif
 	@$(call log-info,$(PY_LOG_PREF),Python coverage)
 	@$(PYENV)/coverage run -m unittest
 	@$(PYENV)/coverage html --skip-empty -q -d $(COVERAGE_DIR) --title $(PACKAGE)
 	@$(PYENV)/coverage report --skip-empty
+
+$(PY_DEV_DEPS_FILE):
+	@$(call log-debug,$(PY_LOG_PREF),Installing developing dependencies)
+	@$(PYENV)/pip install $(PY_DEV_DEPS)
+	@touch $(PY_DEV_DEPS_FILE)
 
 # ~@:-]

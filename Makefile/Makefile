@@ -1,8 +1,8 @@
-PACKAGE      := Testpkg
+PACKAGE      := testpkg
 MAKE_DIR     = .make
 
 NG_DIR       := ui
-PYTHON       := /path/to/python
+PYTHON       := /cygdrive/c/Users/320072283/bin/python/python.exe
 VERSION_FILE := .version
 # regexp (PRE)(VERSION)(POST)
 VERSION_EXP  := ^( *)([0-9.]+)(.*)
@@ -12,21 +12,16 @@ VERSION_EXP  := ^( *)([0-9.]+)(.*)
 #eEach included Makefile will add to $(DIRS)
 DIRS = $(MAKE_DIR)
 
-# ifneq (,$(findstring xxx,$(MAKECMDGOALS)))
-ifneq ("$(wildcard $(VERSION_FILE))","")
-PIPPO = Bellazio
-endif
-
 SHELL:=/bin/bash
 
 -include $(MAKE_DIR)/misc.mk
 -include $(MAKE_DIR)/git.mk
-# -include $(MAKE_DIR)/py.mk
+-include $(MAKE_DIR)/py.mk
 # -include $(MAKE_DIR)/latex.mk
 
 # download all missing include Makefiles
 $(MAKE_DIR)/%.mk: | $(MAKE_DIR)
-	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$$(basename $@)"); \
+	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$(@F)"); \
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
 
@@ -63,9 +58,4 @@ lint:: ## Perform static linting
 test:: build ## Unit test
 	@$(call log-info,MAKE,$@ done)
 
-xxx-test: xxx
-
-xxx:
-	@echo Version $(VERSION)
-# @$(call git_update_version,1.0.2)
 # ~@:-]

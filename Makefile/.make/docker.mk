@@ -40,7 +40,7 @@ clean::
 	&& echo Container for "$(FULL_CONTAINER_NAME)" removed \
 	|| echo Container for "$(FULL_CONTAINER_NAME)" already removed or not found
 
-distclean::
+distclean:: clean
 	@$(call log-debug,$(DOCKER_LOG_PREF),Remove created image)
 	@docker rmi $(DOCKER_TAG) 2>/dev/null \
 	&& echo Image(s) for "$(DOCKER_TAG)" removed \

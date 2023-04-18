@@ -22,8 +22,7 @@ LATEX_OPTS := -pdflatex="lualatex %O %S" -pdf -dvi- -ps- --halt-on-error --inter
 
 DIRS += $(LATEX_BUILD_DIR) $(LATEX_DIST_DIR)
 
-.PHONY: clean-dist clean compile lint read-pdf release
-
+.PHONY: read-pdf
 
 $(LATEX_BUILD_DIR)/%.pdf: %.tex $(LATEX_SRCS) | $(LATEX_BUILD_DIR)
 	@$(call log-info,$(LATEX_LOG_PREF),creating PDF $@)
@@ -33,12 +32,7 @@ $(LATEX_DIST_DIR)/%.pdf: $(LATEX_BUILD_DIR)/%.pdf | $(LATEX_DIST_DIR)
 	@$(call log-info,$(LATEX_LOG_PREF),promove PDF $@ to dist)
 	@cp $< $@
 
-distclean:: clean
-	@$(call log-debug,$(LATEX_LOG_PREF),removing pdf output files)
-	@-$(RMDIR) $(LATEX_DIST_OBJS) $(NULL_STDERR)
-	@$(call log-debug,$(LATEX_LOG_PREF),deep clean of latex solution)
-	@-$(RMDIR) $(LATEX_BUILD_DIR) $(NULL_STDERR)
-	@-$(RMDIR) $(LATEX_DIST_DIR) $(NULL_STDERR)
+build:: $(LATEX_MAIN_OBJS)
 
 clean::
 	@$(call log-debug,$(LATEX_LOG_PREF),Remove leftovers from latex)
@@ -57,7 +51,12 @@ clean::
 	@-$(RM) $(LATEX_BUILD_DIR)/*.{run.xml,acn,acr,alg,ist,synctex*,alg}
 	@-$(RM) $(LATEX_MAIN_OBJS)
 
-build:: $(LATEX_MAIN_OBJS)
+distclean:: clean
+	@$(call log-debug,$(LATEX_LOG_PREF),removing pdf output files)
+	@-$(RMDIR) $(LATEX_DIST_OBJS) $(NULL_STDERR)
+	@$(call log-debug,$(LATEX_LOG_PREF),deep clean of latex solution)
+	@-$(RMDIR) $(LATEX_BUILD_DIR) $(NULL_STDERR)
+	@-$(RMDIR) $(LATEX_DIST_DIR) $(NULL_STDERR)
 
 dist:: build $(LATEX_DIST_OBJS)
 
