@@ -2,20 +2,21 @@
 # - misc.mk
 
 # required variables:
+# - LATEXMK
+# optional variables:
 # - CHKTEX
 # - LATEX_MAIN_SRCS
-# - LATEXMK
 # - PDF_READER
-# optional variables:
 # - WORK_DIR
 
 
 LATEX_BUILD_DIR  := $(BUILD_DIR)/latex
 LATEX_DIST_DIR   := $(DIST_DIR)/latex
 
+LATEX_MAIN_SRCS  ?= $(wildcard $(WORK_DIR)/*.tex)
 LATEX_MAIN_OBJS  := $(LATEX_MAIN_SRCS:%.tex=$(LATEX_BUILD_DIR)/%.pdf)
 LATEX_DIST_OBJS  := $(LATEX_MAIN_SRCS:%.tex=$(LATEX_DIST_DIR)/%.pdf)
-LATEX_SRCS       := $(shell /usr/bin/find ./ -name "*.tex" -type f)
+LATEX_SRCS       ?= $(shell /usr/bin/find $(WORK_DIR) -name "*.tex" -type f)
 LATEX_LOG_PREF   := LATEX
 
 LATEX_OPTS := -pdflatex="lualatex %O %S" -pdf -dvi- -ps- --halt-on-error --interaction=nonstopmode --output-directory=$(LATEX_BUILD_DIR) --output-format=pdf
@@ -62,11 +63,13 @@ dist:: build $(LATEX_DIST_OBJS)
 
 lint::
 # Uses chktex (https://www.nongnu.org/chktex/ChkTeX.pdf)
+# No Warning  1: Command terminated with space.
 # No Warning 13: Intersentence spacing (�\@�) should perhaps be used.
+# No Warning 44: User Regex: -2:Use \toprule, midrule, or \bottomrule from booktabs.
 ifdef CHKTEX
 	@$(call log-info,$(LATEX_LOG_PREF),LaTeX lint)
 	@$(call log-debug,$(LATEX_LOG_PREF),run CHKTEX for latex linting)
-	@$(CHKTEX) -v0qn13 $(LATEX_SRCS)
+	@$(CHKTEX) -v0I0qn1n13n44 $(LATEX_SRCS)
 else
 	@$(call log-warn,$(LATEX_LOG_PREF),CHKTEX is not defined)
 endif

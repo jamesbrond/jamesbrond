@@ -51,8 +51,6 @@ init:: ## Initialize development environment
 	@$(call log-info,MAKE,$@ done)
 
 lint:: ## Perform static linting
-	@$(call log-debug,MAKE,Makefile undefined variables)
-	@$(MAKE) help --dry-run --warn-undefined-variables $(NULL_STDIO)
 	@$(call log-info,MAKE,$@ done)
 
 test:: build ## Unit test

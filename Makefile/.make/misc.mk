@@ -15,6 +15,10 @@ PACKAGE   ?= $(shell basename $$PWD)
 WORK_DIR  ?= .
 BUILD_DIR ?= $(WORK_DIR)/.build
 DIST_DIR  ?= $(WORK_DIR)/dist
+# Current date in format YYYY-mm-dd
+TODAY = $(shell date '+%F')
+# Current date in format YYYYmmddHHMMSS
+NOW = $(shell date '+%Y%m%d%H%M%S')
 
 ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
 NULL_STDERR=2>/dev/null
@@ -35,7 +39,6 @@ RM := del /q
 else
 RMDIR := $(RM)r
 endif
-
 
 # Reset
 CLR_PRF=\033[
@@ -117,15 +120,6 @@ log-warn    = $(call log,YELLOW,$1,$2)
 log-info    = $(call log,BLUE,$1,$2)
 log-debug   = $(call log,BLACK,$1,$2)
 
-# Random UUID generator
-uuid = $(shell uuidgen)
-
-# Return current date in format YYYY-mm-dd
-today = $(shell date '+%F')
-
-# Return current date in format YYYYmmddHHMMSS
-now = $(shell date '+%Y%m%d%H%M%S')
-
 # Replace in files
 # usage file_replace,folder,files,find_str,replace_str
 # example $(call file_replace,build,*,OLD_STR,NEW_STR))
@@ -137,11 +131,9 @@ file_replace = /usr/bin/find "$1" -name "$2" -type f -exec sed -i "s/$3/$4/g" {}
 # example $(call exec_in,$(BUILD_DIR),docker-compose up)
 exec_in = cd "$1" && $2
 
-
 # Create a new zip file
 # Usage $(call zip,zip_filename.zip,files_list)
 zip = zip -r -9 -q $1 $2
-
 
 # check if current folder is in a valid git working tree
 # Examples:
@@ -155,5 +147,9 @@ is_git_repo = $(shell git rev-parse --is-inside-work-tree)
 help: ## Show Makefile help
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E -h '^[a-zA-Z_\.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(CLR_PRF)$(BLUE)m%-20s$(CLR_OFF) %s\n", $$1, $$2}'
+
+lint::
+	@$(call log-debug,MAKE,Makefile undefined variables)
+	@$(MAKE) help --dry-run --warn-undefined-variables $(NULL_STDIO)
 
 # ~@:-]
