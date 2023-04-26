@@ -22,7 +22,7 @@ ifneq ("$(wildcard $(VERSION_FILE))","")
 		VERSION = $(shell sed -nr "s/$(VERSION_EXP)/\2/p" $(VERSION_FILE))
 		git_update_version = sed -i -re "s/$(VERSION_EXP)/\1$1\3/" $(VERSION_FILE) \
 			&& git add $(VERSION_FILE) \
-			&& git commit -m"chore: release $1
+			&& git commit -m"chore: release $1"
 	endif
 endif
 ifndef git_update_version
@@ -43,7 +43,7 @@ else
 endif
 
 ifeq ($(MAKECMDGOALS),tar-bleeding)
-	git_srcs := comm -23 <(git ls-files) <(git ls-files --deleted)
+	git_srcs := comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort)
 #    (git status --short| grep '^?' | cut -d\  -f2- && git ls-files ) | ( xargs -d '\n' -- stat -c%n 2>/dev/null  ||: )
 else
 	git_srcs := git ls-files

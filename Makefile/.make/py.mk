@@ -21,14 +21,14 @@ COVERAGE_DIR    = $(BUILD_DIR)/htmlcov
 DIRS            += $(COVERAGE_DIR)
 
 ifeq ($(call is_git_repo),true)
-	PY_SRCS     = $(shell comm -23 <(git ls-files) <(git ls-files --deleted) | grep ".*\.py$$")
+	PY_SRCS     = $(shell comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort) | grep ".*\.py$$")
 else
 	PY_SRCS     = $(shell /usr/bin/find . -path ./$(VENV_DIR) -prune -o -name "*.py" -print)
 endif
 PY_LOG_PREF     := PYTHON
 
 PY_REQUIREMENTS ?= $(wildcard requirements.txt)
-PY_DEV_DEPS     := pylint flake8 coverage
+PY_DEV_DEPS     = pylint flake8 coverage
 PY_DEV_DEPS_FILE:= $(VENV_DIR)/.install.devdeps.stamp
 PY_CONF_FLAKE8  ?= $(wildcard .flake8)
 PY_CONF_PYLINT  ?= $(wildcard .pylint.toml)
@@ -90,10 +90,6 @@ test:: $(PYENV)
 	@$(PYENV)/python -m unittest -v
 
 coverage: $(PYENV) $(PY_DEV_DEPS_FILE) | $(COVERAGE_DIR) ## Code coverage test
-ifeq (1,$(call py_check_dep,coverage))
-	@$(call log-debug,$(PY_LOG_PREF),Installing developing dependencies)
-	@$(PYENV)/pip install $(PY_DEV_DEPS)
-endif
 	@$(call log-info,$(PY_LOG_PREF),Python coverage)
 	@$(PYENV)/coverage run -m unittest
 	@$(PYENV)/coverage html --skip-empty -q -d $(COVERAGE_DIR) --title $(PACKAGE)

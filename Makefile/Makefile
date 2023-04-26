@@ -21,7 +21,7 @@ SHELL:=/bin/bash
 
 # download all missing include Makefiles
 $(MAKE_DIR)/%.mk: | $(MAKE_DIR)
-	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/$(@F)"); \
+	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/.make/$(@F)"); \
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
 
