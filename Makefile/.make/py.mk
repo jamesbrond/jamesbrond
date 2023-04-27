@@ -42,7 +42,7 @@ $(PYENV):
 # their own site directories, optionally isolated from system site directories.
 # https://docs.python.org/3/library/venv.html
 	@$(call log-debug,$(PY_LOG_PREF),Creating virtual environment)
-	@$(PYTHON) -m venv $(VENV_DIR)
+	@$(PYTHON) -m venv $(VENV_DIR) --upgrade-deps
 
 clean::
 	@$(call log-info,$(PY_LOG_PREF),Clean python)
@@ -59,8 +59,6 @@ distclean:: clean
 
 init:: $(PYENV) $(PY_DEV_DEPS_FILE)
 	@sed -i 's/\r$$//g' $(PYENV)/activate
-	@$(call log-debug,$(PY_LOG_PREF),Upgrading pip)
-	@$(PYENV)/python -m pip install --upgrade pip
 ifneq ($(strip $(PY_REQUIREMENTS)),)
 	@$(call log-debug,$(PY_LOG_PREF),Installing dependencies)
 	@$(PYENV)/pip install -r $(PY_REQUIREMENTS)
