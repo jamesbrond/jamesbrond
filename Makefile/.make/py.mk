@@ -23,7 +23,7 @@ DIRS            += $(COVERAGE_DIR)
 ifeq ($(call is_git_repo),true)
 	PY_SRCS     = $(shell comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort) | grep ".*\.py$$")
 else
-	PY_SRCS     = $(shell /usr/bin/find . -path ./$(VENV_DIR) -prune -o -name "*.py" -print)
+	PY_SRCS     = $(shell /usr/bin/find . -path $(VENV_DIR) -prune -o -name "*.py" -print)
 endif
 PY_LOG_PREF     := PYTHON
 
@@ -47,7 +47,7 @@ $(PYENV):
 clean::
 	@$(call log-info,$(PY_LOG_PREF),Clean python)
 	@$(call log-debug,$(PY_LOG_PREF),Removing bytecode-compiled python files)
-	@/usr/bin/find . -name __pycache__ -type d  -print0 | xargs -0 -r rm -rf
+	@/usr/bin/find . -name __pycache__ -type d -print0 | xargs -0 -r rm -rf
 
 distclean:: clean
 	@$(call log-info,$(PY_LOG_PREF),Distclean python)

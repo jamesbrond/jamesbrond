@@ -21,23 +21,25 @@ TODAY = $(shell date '+%F')
 NOW = $(shell date '+%Y%m%d%H%M%S')
 
 ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
-NULL_STDERR=2>/dev/null
+	NULL_STDERR = 2>/dev/null
+	NULL_STDIO  = 1>/dev/null
 else
-NULL_STDERR=2>NUL
+	NULL_STDERR = 2>NUL
+	NULL_STDIO  = 1>NUL
 endif
 
 touch = touch $(1)
 ifeq (,$(shell command -v touch $(NULL_STDERR)))
 # https://ss64.com/nt/touch.html
-touch = type nul >> $(subst /,\,$(1)) && copy /y /b $(subst /,\,$(1))+,, $(subst /,\,$(1))
+	touch = type nul >> $(subst /,\,$(1)) && copy /y /b $(subst /,\,$(1))+,, $(subst /,\,$(1))
 endif
 
 RM ?= rm -f
 ifeq (,$(shell command -v $(firstword $(RM)) $(NULL_STDERR)))
-RMDIR := rd /s /q
-RM := del /q
+	RMDIR := rd /s /q
+	RM    := del /q
 else
-RMDIR := $(RM)r
+	RMDIR := $(RM)r
 endif
 
 # Reset
