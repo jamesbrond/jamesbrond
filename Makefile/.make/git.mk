@@ -56,7 +56,7 @@ SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_CURRENT_R
 
 git_checkout = git checkout $1 --quiet
 git_stash    = git stash --include-untracked --quiet
-git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet
+git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet || echo ''
 
 
 .PHONY: git-release tar-bleeding tar-release tar
@@ -77,7 +77,7 @@ endif
 
 $(SOURCE_UNSTABLE_OBJ): | $(SOURCE_DIST_DIR)
 	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
-	@$(git_stash) && \
+	$(git_stash) && \
 	$(call zip,$@,$(GIT_SRCS)) && \
 	$(git_unstash)
 
