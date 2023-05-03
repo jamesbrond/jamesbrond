@@ -43,7 +43,7 @@ else
 endif
 
 ifeq ($(MAKECMDGOALS),tar-bleeding)
-	git_srcs := comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort)
+	git_srcs := $$(comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort))
 #    (git status --short| grep '^?' | cut -d\  -f2- && git ls-files ) | ( xargs -d '\n' -- stat -c%n 2>/dev/null  ||: )
 else
 	git_srcs := git ls-files
