@@ -43,12 +43,12 @@ else
 endif
 
 ifeq ($(MAKECMDGOALS),tar-bleeding)
-	git_srcs := $$(comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort))
-#    (git status --short| grep '^?' | cut -d\  -f2- && git ls-files ) | ( xargs -d '\n' -- stat -c%n 2>/dev/null  ||: )
+	GIT_SRCS_CMD := comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort)
+# (git status --short| grep '^?' | cut -d\  -f2- && git ls-files ) | ( xargs -d '\n' -- stat -c%n 2>/dev/null  ||: )
 else
-	git_srcs := git ls-files
+	GIT_SRCS_CMD := git ls-files
 endif
-GIT_SRCS := $(call git_srcs)
+GIT_SRCS = $(shell $(GIT_SRCS_CMD))
 
 SOURCE_BLEEDING_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_CURRENT_REV)-BLEEDING.zip
 SOURCE_RELEASE_OBJ   := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_RELEASE_REV).zip
