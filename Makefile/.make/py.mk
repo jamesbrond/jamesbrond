@@ -8,11 +8,11 @@
 
 # optional variables:
 # - PACKAGE
-# - WORK_DIR
+# - BUILD_DIR
 # - PY_CONF_FLAKE8
 # - PY_CONF_PYLINT
 
-VENV_DIR        := $(WORK_DIR)/.venv
+VENV_DIR        ?= $(BUILD_DIR)/venv
 PYENV           = $(VENV_DIR)/bin
 ifeq ($(OS), Windows_NT)
 	PYENV       = $(VENV_DIR)/Scripts
@@ -21,7 +21,7 @@ COVERAGE_DIR    = $(BUILD_DIR)/htmlcov
 DIRS            += $(COVERAGE_DIR)
 
 ifeq ($(call is_git_repo),true)
-	PY_SRCS     = $(shell comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort) | grep ".*\.py$$")
+	PY_SRCS     = $(shell comm -23 <(git ls-files | sort) <(git ls-files --deleted | sort) | grep -P '(\.py)(?=\s)')
 else
 	PY_SRCS     = $(shell /usr/bin/find . -path $(VENV_DIR) -prune -o -name "*.py" -print)
 endif
@@ -63,6 +63,10 @@ ifneq ($(strip $(PY_REQUIREMENTS)),)
 	@$(call log-debug,$(PY_LOG_PREF),Installing dependencies)
 	@$(PYENV)/pip install -r $(PY_REQUIREMENTS)
 endif
+ifeq ($(call is_git_repo),true)
+	@$(call append_to_file,$(GIT_IGNORE),$(PYENV))
+endif
+
 
 lint:: $(PYENV) $(PY_DEV_DEPS_FILE)
 ifneq ($(strip $(PY_SRCS)),)

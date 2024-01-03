@@ -35,7 +35,7 @@ $(SERVICES): $(DOKER_COMPOSE_OBJ)
 	@$(MAKE) -C $(SRC_DIR)/$@ compose
 
 # Move the docker-compose YAML file and all the dockers environment in the build dir where run it
-build:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
+all:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
 
 clean:: dc-stop
 	@-$(RMDIR) $(DC_BUILD_DIR) $(NULL_STDERR)

@@ -33,7 +33,7 @@ $(LATEX_DIST_DIR)/%.pdf: $(LATEX_BUILD_DIR)/%.pdf | $(LATEX_DIST_DIR)
 	@$(call log-info,$(LATEX_LOG_PREF),promove PDF $@ to dist)
 	@cp $< $@
 
-build:: $(LATEX_MAIN_OBJS)
+all:: $(LATEX_MAIN_OBJS)
 
 clean::
 	@$(call log-debug,$(LATEX_LOG_PREF),Remove leftovers from latex)

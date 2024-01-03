@@ -1,3 +1,4 @@
+# Add this makefile if git is the current versioning system for this project
 # git executable must be in PATH
 
 # required makefiles:
@@ -12,10 +13,10 @@
 # - VERSION_FILE
 # - GIT_HOOKS_DIR
 
-GIT_HOOKS_DIR        ?= .githooks
-SOURCE_DIST_DIR      := $(DIST_DIR)/source
-DIRS                 += $(SOURCE_DIST_DIR) $(GIT_HOOKS_DIR)
-GIT_LOG_PREF         := GIT
+GIT_HOOKS_DIR ?= .githooks
+GIT_IGNORE    := .gitignore
+TAR_DIST_DIR  := $(DIST_DIR)/source
+DIRS          += $(GIT_HOOKS_DIR) $(TAR_DIST_DIR)
 
 ifneq ("$(wildcard $(VERSION_FILE))","")
 	ifdef VERSION_EXP
@@ -26,7 +27,7 @@ ifneq ("$(wildcard $(VERSION_FILE))","")
 	endif
 endif
 ifndef git_update_version
-	git_update_version = $(call log-warn,$(GIT_LOG_PREF),Cannot update version file)
+	git_update_version = $(call log-warn,GIT,Cannot update version file)
 endif
 ifndef VERSION
 	VERSION = 0
@@ -50,9 +51,9 @@ else
 endif
 GIT_SRCS = $(shell $(GIT_SRCS_CMD))
 
-SOURCE_BLEEDING_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_CURRENT_REV)-BLEEDING.zip
-SOURCE_RELEASE_OBJ   := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_RELEASE_REV).zip
-SOURCE_UNSTABLE_OBJ  := $(SOURCE_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_CURRENT_REV).zip
+TAR_BLEEDING_OBJ  := $(TAR_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_CURRENT_REV)-BLEEDING.zip
+TAR_RELEASE_OBJ   := $(TAR_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_RELEASE_REV).zip
+TAR_UNSTABLE_OBJ  := $(TAR_DIST_DIR)/$(PACKAGE)-$(VERSION)-$(GIT_CURRENT_REV).zip
 
 git_checkout = git checkout $1 --quiet
 git_stash    = git stash --include-untracked --quiet
@@ -61,13 +62,13 @@ git_unstash  = [[ $$(git stash list | wc -l) -gt 0 ]] && git stash pop --quiet |
 
 .PHONY: git-release tar-bleeding tar-release tar
 
-$(SOURCE_BLEEDING_OBJ): $(GIT_SRCS) | $(SOURCE_DIST_DIR)
-	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
+$(TAR_BLEEDING_OBJ): $(GIT_SRCS) | $(TAR_DIST_DIR)
+	@$(call log-debug,GIT,Creating $@)
 	@$(call zip,$@,$(GIT_SRCS))
 
-$(SOURCE_RELEASE_OBJ): | $(SOURCE_DIST_DIR)
+$(TAR_RELEASE_OBJ): | $(TAR_DIST_DIR)
 ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
-	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
+	@$(call log-debug,GIT,Creating $@)
 	@$(git_stash) && \
 	$(call git_checkout,$(GIT_RELEASE_BRANCH)) && \
 	$(call zip,$@,$(GIT_SRCS)) && \
@@ -75,23 +76,31 @@ ifneq ($(strip $(GIT_RELEASE_BRANCH)),)
 	$(git_unstash)
 endif
 
-$(SOURCE_UNSTABLE_OBJ): | $(SOURCE_DIST_DIR)
-	@$(call log-debug,$(GIT_LOG_PREF),Creating $@)
-	$(git_stash) && \
+$(TAR_UNSTABLE_OBJ): | $(TAR_DIST_DIR)
+	@$(call log-debug,GIT,Creating $@)
+	@$(git_stash) && \
 	$(call zip,$@,$(GIT_SRCS)) && \
 	$(git_unstash)
 
 init:: | $(GIT_HOOKS_DIR)
-	@$(call log-debug,$(GIT_LOG_PREF),Set hooks folder $(GIT_HOOKS_DIR) [require git > 2.9])
+	@$(call log-debug,GIT,Set hooks folder $(GIT_HOOKS_DIR) [require git > 2.9])
 	@git config --local core.hooksPath $(GIT_HOOKS_DIR)
+	@$(call log-debug,GIT,Add ignore dirs [$(DIRS)] to .gitignore)
+	@for I in $(DIRS) ; do \
+		if ! grep -Fqm1 $$I/ .gitignore; then \
+			echo $$I/ >> .gitignore ; \
+		fi ; \
+	done
+	@$(call append_to_file,$(GIT_IGNORE),$(BUILD_DIR))
+	@$(call append_to_file,$(GIT_IGNORE),$(MAKE_DIR))
 
 clean::
-	@$(call log-debug,$(GIT_LOG_PREF),Removing output source files)
-	@-$(RM) $(SOURCE_DIST_DIR)/*.zip $(NULL_STDERR)
+	@$(call log-debug,GIT,Removing output source files)
+	@-$(RM) $(TAR_DIST_DIR)/*.zip $(NULL_STDERR)
 
 distclean:: clean
-	@$(call log-debug,$(GIT_LOG_PREF),deleting '$(SOURCE_DIST_DIR)' folder)
-	@-$(RMDIR) $(SOURCE_DIST_DIR) $(NULL_STDERR)
+	@$(call log-debug,GIT,deleting '$(TAR_DIST_DIR)' folder)
+	@-$(RMDIR) $(TAR_DIST_DIR) $(NULL_STDERR)
 
 git-release: ## Ask for new git tag, update version and push it to github (releases are in branch main only)
 ifneq ($(call is_git_repo),true)
@@ -103,7 +112,7 @@ endif
 ifeq ($(strip $(VERSION)),)
 	$(error Cannot get current version)
 endif
-	@$(call log-info,$(GIT_LOG_PREF),Last release: $(VERSION))
+	@$(call log-info,GIT,Last release: $(VERSION))
 	@$(git_stash)
 	@$(call git_checkout,$(GIT_MAIN_BRANCH))
 	@while [ -z "$$gittag" ]; do \
@@ -115,10 +124,10 @@ endif
 	@$(call git_checkout, $(GIT_CURRENT_BRANCH))
 	@$(git_unstash)
 
-tar-bleeding: $(SOURCE_BLEEDING_OBJ) ## Create a distributable zip of current branch (with unstaged changes)
+tar-bleeding: $(TAR_BLEEDING_OBJ) ## Create a distributable zip of current branch (with unstaged changes)
 
-tar-release: $(SOURCE_RELEASE_OBJ) ## Create a distributable zip of the latest stable release
+tar-release: $(TAR_RELEASE_OBJ) ## Create a distributable zip of the latest stable release
 
-tar: $(SOURCE_UNSTABLE_OBJ) ## Create a distributable zip of current branch (without unstaged changes)
+tar: $(TAR_UNSTABLE_OBJ) ## Create a distributable zip of current branch (without unstaged changes)
 
 # ~@:-]

@@ -46,7 +46,7 @@ distclean:: clean
 	&& echo Image(s) for "$(DOCKER_TAG)" removed \
 	|| echo Image(s) for "$(DOCKER_TAG)" already removed or not found
 
-build::
+all::
 	@$(call log-debug,$(DOCKER_LOG_PREF),Build the dockerfile)
 	docker build --pull=$(PULL) --no-cache=$(NO_CACHE) -t $(DOCKER_TAG) .
 

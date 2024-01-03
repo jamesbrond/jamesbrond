@@ -44,7 +44,7 @@ clean::
 distclean:: clean
 	@-$(RMDIR) $(NG_DIST_DIR) $(NULL_STDERR)
 
-build:: $(NG_OBJ)
+all:: $(NG_OBJ)
 
 dist:: $(NG_DIST_OBJ)
 
