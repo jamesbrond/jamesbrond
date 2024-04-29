@@ -12,7 +12,7 @@
 # - PY_CONF_FLAKE8
 # - PY_CONF_PYLINT
 
-VENV_DIR        ?= $(BUILD_DIR)/venv
+VENV_DIR        ?= .venv
 PYENV           = $(VENV_DIR)/bin
 ifeq ($(OS), Windows_NT)
 	PYENV       = $(VENV_DIR)/Scripts
@@ -30,6 +30,7 @@ PY_LOG_PREF     := PYTHON
 PY_REQUIREMENTS ?= $(wildcard requirements.txt)
 PY_DEV_DEPS     = pylint flake8 coverage
 PY_DEV_DEPS_FILE:= $(VENV_DIR)/.install.devdeps.stamp
+PY_DEV_PROD_FILE:= $(VENV_DIR)/.install.proddeps.stamp
 PY_CONF_FLAKE8  ?= $(wildcard .flake8)
 PY_CONF_PYLINT  ?= $(wildcard .pylint.toml)
 # py_check_dep = $(shell $(PYENV)/python -c "import $1" $(NULL_STDERR); echo $$?)
@@ -44,6 +45,8 @@ $(PYENV):
 	@$(call log-debug,$(PY_LOG_PREF),Creating virtual environment)
 	@$(PYTHON) -m venv $(VENV_DIR) --upgrade-deps
 
+build:: $(PY_DEV_PROD_FILE)
+
 clean::
 	@$(call log-info,$(PY_LOG_PREF),Clean python)
 	@$(call log-debug,$(PY_LOG_PREF),Removing bytecode-compiled python files)
@@ -57,18 +60,13 @@ distclean:: clean
 	@-$(RM) .coverage $(NULL_STDERR)
 	@-$(RMDIR) $(COVERAGE_DIR) $(NULL_STDERR)
 
-init:: $(PYENV) $(PY_DEV_DEPS_FILE)
+init:: $(PYENV) $(PY_DEV_DEPS_FILE) $(PY_DEV_PROD_FILE)
 	@sed -i 's/\r$$//g' $(PYENV)/activate
-ifneq ($(strip $(PY_REQUIREMENTS)),)
-	@$(call log-debug,$(PY_LOG_PREF),Installing dependencies)
-	@$(PYENV)/pip install -r $(PY_REQUIREMENTS)
-endif
 ifeq ($(call is_git_repo),true)
 	@$(call append_to_file,$(GIT_IGNORE),$(PYENV))
 endif
 
-
-lint:: $(PYENV) $(PY_DEV_DEPS_FILE)
+lint:: $(PYENV) $(PY_DEV_DEPS_FILE) $(PY_DEV_PROD_FILE)
 ifneq ($(strip $(PY_SRCS)),)
 	@$(call log-info,$(PY_LOG_PREF),Running python lint)
 
@@ -87,11 +85,11 @@ else
 endif
 endif
 
-test:: $(PYENV)
+test:: $(PYENV) $(PY_DEV_PROD_FILE)
 	@$(call log-info,$(PY_LOG_PREF),Running python unit tests)
 	@$(PYENV)/python -m unittest -v
 
-coverage: $(PYENV) $(PY_DEV_DEPS_FILE) | $(COVERAGE_DIR) ## Code coverage test
+coverage: $(PYENV) $(PY_DEV_DEPS_FILE) $(PY_DEV_PROD_FILE) | $(COVERAGE_DIR) ## Code coverage test
 	@$(call log-info,$(PY_LOG_PREF),Python coverage)
 	@$(PYENV)/coverage run -m unittest
 	@$(PYENV)/coverage html --skip-empty -q -d $(COVERAGE_DIR) --title $(PACKAGE)
@@ -101,5 +99,12 @@ $(PY_DEV_DEPS_FILE):
 	@$(call log-debug,$(PY_LOG_PREF),Installing developing dependencies)
 	@$(PYENV)/pip install $(PY_DEV_DEPS)
 	@touch $(PY_DEV_DEPS_FILE)
+
+$(PY_DEV_PROD_FILE): $(PY_REQUIREMENTS)
+ifneq ($(strip $(PY_REQUIREMENTS)),)
+	@$(call log-debug,$(PY_LOG_PREF),Installing dependencies)
+	@$(PYENV)/pip install -r $(PY_REQUIREMENTS)
+endif
+	@touch $(PY_DEV_PROD_FILE)
 
 # ~@:-]

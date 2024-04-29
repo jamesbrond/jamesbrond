@@ -21,23 +21,27 @@ service_shell:=bash
 DC_BUILD_DIR  := $(BUILD_DIR)/docker_compose
 DC_LOG_PREF   := DockerCompose
 
-DOKER_COMPOSE_OBJ=$(DC_BUILD_DIR)/docker-compose.yml
+DOCKER_COMPOSE_OBJ=$(DC_BUILD_DIR)/docker-compose.yml
 
 DIRS += $(DC_BUILD_DIR)
 
+SERVICES_SRCS := $(foreach i,$(SERVICES),$(SRC_DIR)/$(i)/compose.yml)
+
 docker_compose = $(call exec_in,$(DC_BUILD_DIR),$1)
 
-$(DOKER_COMPOSE_OBJ): | $(DC_BUILD_DIR)
-	@cp $(SRC_DIR)/docker-compose.yml $(DC_BUILD_DIR)
+docker_append = $(shell cat "$1" >> "$2" && echo -en '\n')
 
-$(SERVICES): $(DOKER_COMPOSE_OBJ)
-	@$(call log-debug,$(DC_LOG_PREF),Make service $@)
-	@$(MAKE) -C $(SRC_DIR)/$@ compose
+$(DOCKER_COMPOSE_OBJ): $(SERVICES_SRCS) $(CONFIGURE) | $(DC_BUILD_DIR)
+	@cat $(SRC_DIR)/docker-compose.yml > $(DC_BUILD_DIR)/docker-compose.yml
+	@for s in $(SERVICES); do \
+		$(call log-debug,$(DC_LOG_PREF),Make service $$s); \
+		$(MAKE) -C $(SRC_DIR)/$$s compose ROOT_BUILD_DIR=../../$(DC_BUILD_DIR) CONFIGURE=$(shell $(call abs_path,$(CONFIGURE))); \
+	done
 
 # Move the docker-compose YAML file and all the dockers environment in the build dir where run it
-all:: $(DOKER_COMPOSE_OBJ) $(SERVICES)
+build:: $(DOCKER_COMPOSE_OBJ)
 
-clean:: dc-stop
+clean::
 	@-$(RMDIR) $(DC_BUILD_DIR) $(NULL_STDERR)
 
 dc-run: dc-compose ## Run all the services in the foreground
@@ -68,3 +72,8 @@ dc-ls: ## Lists containers
 
 dc-reload: ## Restarts all stopped and running services or a single service (service=<service_name>)
 	$(call docker_compose,docker-compose restart $(service))
+
+dc-rm:
+	@for s in $(SERVICES); do \
+		$(call docker_compose,docker-compose rm --stop --force $$s); \
+	done

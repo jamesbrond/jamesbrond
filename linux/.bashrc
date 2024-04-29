@@ -9,7 +9,7 @@ case $- in
 esac
 
 if [ -f ~/.git-prompt.sh ]; then
-    . ~/.git-prompt.sh
+    source ~/.git-prompt.sh
 fi
 
 # don't put duplicate lines or lines starting with space in the history.
@@ -62,7 +62,7 @@ fi
 
 # The following block is surrounded by two delimiters.
 # possible value are: oneline, twolines, moba
-PROMPT_ALTERNATIVE=moba
+PROMPT_ALTERNATIVE=oneline
 NEWLINE_BEFORE_PROMPT=yes
 SHOW_GIT_BRANCH=yes
 
@@ -111,7 +111,7 @@ if [ "$color_prompt" = yes ]; then
     __path_oneline() { echo "$(color_reset):$(color $CLR_PATH)\w"; }
     __end_oneline() { echo "$(color_reset)"; }
     __prompt_oneline() { echo "$PROMPT_USER "; }
-    __git_oneline() { echo "$(color $CLR_GIT)\$(__git_ps1 ' (%s)')"; }
+    __git_oneline() { echo "$(color $CLR_GIT)$(__git_ps1  ' (%s)')"; }
 
     __init_moba() { echo "$(color_reset)"; }
     __chroot_moba() { echo "\${debian_chroot:+$(color $CLR_FG $((CLR_CHROOT+10))) \$debian_chroot $(arrow $CLR_HOST)}"; }
@@ -142,6 +142,8 @@ if [ "$color_prompt" = yes ]; then
         PS1="$PS1\n"
     fi
     PS1="$PS1$(eval '__prompt_$PROMPT_ALTERNATIVE')"
+
+    PS1='${VIRTUAL_ENV:+\[\033[01;32m\]«$(basename $VIRTUAL_ENV)»\[\033[00m\] }\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " \[\033[01;37m\]⌐%s\[\033[00m\]")\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)}\u@\h:\w$PROMPT_USER '
 fi
