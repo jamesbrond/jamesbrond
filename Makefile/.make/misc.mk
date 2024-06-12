@@ -1,79 +1,46 @@
-# docker-compose command must be in PATH
+# Default variables
+PACKAGE   ?= $(shell basename $$PWD)
+WORK_DIR  ?= .
+BUILD_DIR ?= $(WORK_DIR)/build
+DIST_DIR  ?= $(WORK_DIR)/release
+# Current date in format YYYY-mm-dd
+TODAY = $(shell date '+%F')
+# Current date in format YYYYmmddHHMMSS
+NOW = $(shell date '+%Y%m%d%H%M%S')
+CONFIGURE = .configure
 
-# required makefiles:
-# - misc.mk
+ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
+	NULL_STDERR = 2>/dev/null
+@@ -145,13 +146,32 @@ zip = zip -r -9 -q $1 $2
+# endif
+is_git_repo = $(shell git rev-parse --is-inside-work-tree)
 
-# required variables:
-# - SRC_DIR (where all docker configuration and volumes are)
-# - SERVICES
-# - BUILD_DIR
+# Recursive wildcard function:
+# Examples:
+# all py files in folder and subfolders
+# ALL_PYS := $(call rwildcard,foo/,*.py)
+rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-# optional variables:
-# - LOG_LINES
-# - SHELL
+# Appends a line to a file only if it does not already exist
+# Examples:
+# $(call append_to_file,.gitignore,__pycache__/)
+append_to_file = $(shell grep -qsxF '$2' $1 || echo '$2' >> $1)
 
+init::
+	@$(call log-info,MISC,Create the $(CONFIGURE) file)
+	@$(call log-info,MISC,if something is misconfigured please feel free to edit it according to your configuration)
+	@$(call touch,$(CONFIGURE))
 
-LOG_LINES ?= 100
-SHELL     ?= /bin/bash
+maintainer-clean::
+	@$(call log-info,MISC,This command is intended for maintainers to use it)
+	@$(call log-info,MISC,deletes files that may need special tools to rebuild)
 
-service:=
-service_shell:=bash
-DC_BUILD_DIR  := $(BUILD_DIR)/docker_compose
-DC_LOG_PREF   := DockerCompose
+help: ## Show Makefile help
+# http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+	@grep -E -h '^[a-zA-Z_\.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(CLR_PRF)$(BLUE)m%-20s$(CLR_OFF) %s\n", $$1, $$2}'
 
-DOCKER_COMPOSE_OBJ=$(DC_BUILD_DIR)/docker-compose.yml
+lint::
+	@$(call log-debug,MISC,Makefile undefined variables)
+	@$(MAKE) help --dry-run --warn-undefined-variables $(NULL_STDIO)
 
-DIRS += $(DC_BUILD_DIR)
-
-SERVICES_SRCS := $(foreach i,$(SERVICES),$(SRC_DIR)/$(i)/compose.yml)
-
-docker_compose = $(call exec_in,$(DC_BUILD_DIR),$1)
-
-docker_append = $(shell cat "$1" >> "$2" && echo -en '\n'  >> "$2")
-
-$(DOCKER_COMPOSE_OBJ): $(SERVICES_SRCS) $(CONFIGURE) | $(DC_BUILD_DIR)
-	@cat $(SRC_DIR)/docker-compose.yml > $(DC_BUILD_DIR)/docker-compose.yml
-	@for s in $(SERVICES); do \
-		$(call log-debug,$(DC_LOG_PREF),Make service $$s); \
-		$(MAKE) -C $(SRC_DIR)/$$s compose ROOT_BUILD_DIR=../../$(DC_BUILD_DIR) CONFIGURE=$(shell $(call abs_path,$(CONFIGURE))); \
-	done
-
-# Move the docker-compose YAML file and all the dockers environment in the build dir where run it
-build:: $(DOCKER_COMPOSE_OBJ)
-
-clean::
-	@-$(RMDIR) $(DC_BUILD_DIR) $(NULL_STDERR)
-
-dc-run: dc-compose ## Run all the services in the foreground
-	@$(call docker_compose,docker-compose up)
-
-dc-rund: dc-compose ## Run all the services in the background
-	@$(call docker_compose,docker-compose up -d)
-
-dc-stop: ## Stop all the services
-	@$(call docker_compose,docker-compose down)
-
-dc-restart: dc-stop dc-run ## Stop and restart all the services
-
-dc-logs: ## Show latest logs of all services or of a specific service with service=<service_name>
-	@$(call docker_compose,docker-compose logs --timestamps --follow --tail $(LOGS_LINE) $(service))
-
-dc-logsf: ## Log to file all logs of all services or of a specific service with service=<service_name>
-	$(call docker_compose,docker-compose logs --timestamps --follow --no-color $(service) >& logs_$(service).log)
-
-dc-tty: ## Start the service  with service=<service_name> a root shell (service_shell=<bash or sh>)
-	$(call docker_compose,docker exec -it "$(service)" $(service_shell))
-
-dc-ttyr: ## Start the service  with service=<service_name> a user shell (service_shell=<bash or sh>)
-	$(call docker_compose,docker-compose run -u root "$(service)" $(service_shell))
-
-dc-ls: ## Lists containers
-	$(call docker_compose,docker-compose ps)
-
-dc-reload: ## Restarts all stopped and running services or a single service (service=<service_name>)
-	$(call docker_compose,docker-compose restart $(service))
-
-dc-rm:
-	@for s in $(SERVICES); do \
-		$(call docker_compose,docker-compose rm --stop --force $$s); \
-	done
+# ~@:-]
