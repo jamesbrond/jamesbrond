@@ -8,7 +8,7 @@ const emoji = '~@:-]';
 
 var skills = {
   languages: [ 'Java', 'JavaScript', 'TypeScript', 'PL/SQL', 'Python', 'LaTeX',
-               'PHP', 'Bash', 'HTML', 'SASS', 'LESS', 'CSS', 'C++', 'Perl' ].sort(),
+               'PHP', 'Bash', 'HTML', 'SASS', 'LESS', 'CSS', 'C++', 'Perl', 'C#' ].sort(),
 
   libraries: [ 'java.net.http.HttpClient', 'org.apache.logging.log4j', 'Matplotlib' ],
 
@@ -18,11 +18,11 @@ var skills = {
 
   platforms: [ 'Windows', 'GNU/Linux', 'AWS', 'Docker' ],
 
-  misc: [ 'Analytical', 'Responsive design', 'Github Workflows' ]
+  misc: [ 'Analytical', 'Responsive design', 'Github Workflows', 'Mirth' ]
 };
 
 var status = {
-  learning: [ 'Angular', 'C#' ],
+  learning: [ 'HL7', 'DICOM' ],
   interests: [ 'Open Source Contribution', 'Wood Working', 'Home brewery' ]
 };
 ```
