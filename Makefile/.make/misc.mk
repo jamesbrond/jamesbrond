@@ -7,12 +7,12 @@ DIST_DIR  ?= $(WORK_DIR)/release
 TODAY = $(shell date '+%F')
 # Current date in format YYYYmmddHHMMSS
 NOW = $(shell date '+%Y%m%d%H%M%S')
-CONFIGURE = .configure
+CONFIGURE = .makefile.conf
 
 ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
-	NULL_STDERR = 2>/dev/null
-@@ -145,13 +146,32 @@ zip = zip -r -9 -q $1 $2
-# endif
+    NULL_STDERR = 2>/dev/null
+endif
+
 is_git_repo = $(shell git rev-parse --is-inside-work-tree)
 
 # Recursive wildcard function:
