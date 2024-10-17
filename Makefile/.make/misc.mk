@@ -9,10 +9,6 @@ TODAY = $(shell date '+%F')
 NOW = $(shell date '+%Y%m%d%H%M%S')
 CONFIGURE = .makefile.conf
 
-ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
-    NULL_STDERR = 2>/dev/null
-endif
-
 is_git_repo = $(shell git rev-parse --is-inside-work-tree)
 
 # Recursive wildcard function:
