@@ -8,6 +8,10 @@ TODAY = $(shell date '+%F')
 # Current date in format YYYYmmddHHMMSS
 NOW = $(shell date '+%Y%m%d%H%M%S')
 CONFIGURE = .makefile.conf
+VERSION_FILE := .version
+# regexp (PRE)(VERSION)(POST)
+VERSION_EXP  := ^( *)([0-9.]+)(.*)
+# VERSION_EXP  := (__version__ *= *\")([0-9.]+)(\"*)
 
 ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
 	NULL_STDERR = 2>/dev/null
@@ -140,10 +144,22 @@ rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2
 # $(call append_to_file,.gitignore,__pycache__/)
 append_to_file = $(shell grep -qsxF '$2' $1 || echo '$2' >> $1)
 
-init::
-	@$(call log-info,MISC,Create the $(CONFIGURE) file)
+$(VERSION_FILE):
+	@$(call log-info,MISC,Create the $@ file)
+	@echo "0.0.1" > $@
+
+$(CONFIGURE):
+	@$(call log-info,MISC,Create the $@ file)
 	@$(call log-info,MISC,if something is misconfigured please feel free to edit it according to your configuration)
-	@$(call touch,$(CONFIGURE))
+	@$(call touch,$@)
+
+.git:
+ifeq ($(call is_git_repo),false)
+	@$(call log-info,MISC,Initialize local git repository)
+	@git init --quiet
+endif
+
+init:: $(VERSION_FILE) $(CONFIGURE) .git
 
 maintainer-clean::
 	@$(call log-info,MISC,This command is intended for maintainers to use it)

@@ -19,7 +19,7 @@ LATEX_DIST_OBJS  := $(LATEX_MAIN_SRCS:%.tex=$(LATEX_DIST_DIR)/%.pdf)
 LATEX_SRCS       ?= $(shell /usr/bin/find $(WORK_DIR) -name "*.tex" -type f)
 LATEX_LOG_PREF   := LATEX
 
-LATEX_OPTS := -pdflatex="lualatex %O %S" -pdf -dvi- -ps- --halt-on-error --interaction=nonstopmode --output-directory=$(LATEX_BUILD_DIR) --output-format=pdf
+LATEX_OPTS := -pdflatex="lualatex %O %S" --shell-escape -pdf -dvi- -ps- --halt-on-error --interaction=nonstopmode --output-directory=$(LATEX_BUILD_DIR) --output-format=pdf
 
 DIRS += $(LATEX_BUILD_DIR) $(LATEX_DIST_DIR)
 
@@ -59,7 +59,7 @@ distclean:: clean
 	@-$(RMDIR) $(LATEX_BUILD_DIR) $(NULL_STDERR)
 	@-$(RMDIR) $(LATEX_DIST_DIR) $(NULL_STDERR)
 
-dist:: build $(LATEX_DIST_OBJS)
+dist:: $(LATEX_DIST_OBJS)
 
 lint::
 # Uses chktex (https://www.nongnu.org/chktex/ChkTeX.pdf)

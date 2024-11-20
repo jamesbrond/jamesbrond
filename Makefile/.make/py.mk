@@ -12,7 +12,7 @@
 # - PY_CONF_FLAKE8
 # - PY_CONF_PYLINT
 
-VENV_DIR        ?= .venv
+VENV_DIR        ?= venv
 PYENV           = $(VENV_DIR)/bin
 ifeq ($(OS), Windows_NT)
 	PYENV       = $(VENV_DIR)/Scripts
@@ -45,7 +45,7 @@ $(PYENV):
 	@$(call log-debug,$(PY_LOG_PREF),Creating virtual environment)
 	@$(PYTHON) -m venv $(VENV_DIR) --upgrade-deps
 
-build:: $(PY_DEV_PROD_FILE)
+all:: $(PY_DEV_PROD_FILE)
 
 clean::
 	@$(call log-info,$(PY_LOG_PREF),Clean python)

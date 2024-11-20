@@ -1,17 +1,9 @@
 # Define program variables and folders
-PACKAGE      := testpkg
-MAKE_DIR  	 := build/make
-
-PYTHON       := /cygdrive/c/Users/320072283/bin/python/python.exe
-VERSION_FILE := .version
-# regexp (PRE)(VERSION)(POST)
-VERSION_EXP  := ^( *)([0-9.]+)(.*)
-# VERSION_EXP  := (__version__ *= *\")([0-9.]+)(\"*)
+MAKE_DIR  	 := .make
 
 # define all directories to be created
 # each included Makefile may add to $(DIRS)
 DIRS = $(MAKE_DIR)
-
 
 SHELL:=/bin/bash
 
@@ -26,9 +18,6 @@ $(MAKE_DIR)/%.mk: | $(MAKE_DIR)
 	@URL=$$(echo "https://raw.githubusercontent.com/jamesbrond/jamesbrond/main/Makefile/.make/$(@F)"); \
 	echo "get $$URL"; \
 	curl -s -H 'Cache-Control: no-cache, no-store' $${URL} -o $@
-
-$(CONFIGURE):
-	init
 
 .PHONY: all clean distclean maintainer-clean dist init lint test
 .DEFAULT_GOAL := all
@@ -86,7 +75,7 @@ maintainer-clean:: distclean ##Delete almost everything that can be reconstructe
 # or cp to install the proper files in it, and then tar that subdirectory.
 # The dist target should explicitly depend on all non-source files that are in the
 # distribution, to make sure they are up to date in the distribution.
-dist:: build ## Create a distribution file or files for this program
+dist:: ## Create a distribution file or files for this program
 	@$(call log-info,MAKE,$@ done)
 
 # Prepare the environment to build the software on your specific system.
@@ -96,10 +85,12 @@ dist:: build ## Create a distribution file or files for this program
 init:: ## Initialize development environment
 	@$(call log-info,MAKE,$@ done)
 
+# Performs static code analysis for this program.
 lint:: ## Perform static linting
 	@$(call log-info,MAKE,$@ done)
 
-test:: build ## Unit test
+# Runs unit test for this program.
+test:: ## Unit test
 	@$(call log-info,MAKE,$@ done)
 
 # ~@:-]

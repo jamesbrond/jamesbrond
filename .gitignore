@@ -1,3 +1,5 @@
 __pycache__/
 vacation/balance.json
 vacation/cal.json
+
+Makefile/.makefile.conf

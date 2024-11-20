@@ -39,7 +39,7 @@ $(DOCKER_COMPOSE_OBJ): $(SERVICES_SRCS) $(CONFIGURE) | $(DC_BUILD_DIR)
 	done
 
 # Move the docker-compose YAML file and all the dockers environment in the build dir where run it
-build:: $(DOCKER_COMPOSE_OBJ)
+all:: $(DOCKER_COMPOSE_OBJ)
 
 clean::
 	@-$(RMDIR) $(DC_BUILD_DIR) $(NULL_STDERR)
