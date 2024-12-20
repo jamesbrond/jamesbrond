@@ -13,6 +13,8 @@ VERSION_FILE := .version
 VERSION_EXP  := ^( *)([0-9.]+)(.*)
 # VERSION_EXP  := (__version__ *= *\")([0-9.]+)(\"*)
 
+DIRS += $(BUILD_DIR) $(DIST_DIR)
+
 ifeq (ok,$(shell test -e /dev/null 2>&1 && echo ok))
 	NULL_STDERR = 2>/dev/null
 	NULL_STDIO  = 1>/dev/null

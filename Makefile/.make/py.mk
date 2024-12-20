@@ -35,7 +35,7 @@ PY_CONF_FLAKE8  ?= $(wildcard .flake8)
 PY_CONF_PYLINT  ?= $(wildcard .pylint.toml)
 # py_check_dep = $(shell $(PYENV)/python -c "import $1" $(NULL_STDERR); echo $$?)
 
-.PHONY: coverage
+.PHONY: activate coverage
 
 $(PYENV):
 # Create python virtual environment

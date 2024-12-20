@@ -3,14 +3,7 @@
 # for examples
 
 # If not running interactively, don't do anything
-case $- in
-    *i*) ;;
-      *) return;;
-esac
-
-if [ -f ~/.git-prompt.sh ]; then
-    source ~/.git-prompt.sh
-fi
+[[ "$-" != *i* ]] && return
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -34,11 +27,6 @@ shopt -s checkwinsize
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
-# set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
-fi
-
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes;;
@@ -60,116 +48,143 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-# The following block is surrounded by two delimiters.
-# possible value are: oneline, twolines, moba
-PROMPT_ALTERNATIVE=oneline
-NEWLINE_BEFORE_PROMPT=no
-SHOW_GIT_BRANCH=yes
+function __git_dirty {
+    [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working tree clean" ]] && echo "*"
+}
 
-function parse_git_dirty {
-    [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] && echo "~"
+function __git_ps1() {
+    git branch 2> /dev/null | grep '^*' | cut -d ' ' -f2- | xargs -I BRANCH_NAME echo -n "$(__git_dirty)BRANCH_NAME" | xargs -I BRANCH echo -n "$1"
+}
+
+function __color() {
+    echo "\[\033[0;$1m\]"
 }
 
 if [ "$color_prompt" = yes ]; then
-    # override default virtualenv indicator in prompt
-    VIRTUAL_ENV_DISABLE_PROMPT=1
-    ICON_ARROW=$'\xEe\x82\xB0'
-    PROMPT_USER="\$"
-    ICON_USER=🐵
-    CLR_USER=36
-    CLR_CHROOT=90
-    CLR_VENV=33
-    CLR_HOST=32
-    CLR_PATH=34
-    CLR_GIT=35
-    CLR_FG=30
+    CLR_CHROOT=$(__color 37)
+    CLR_USER=$(__color 33)
+    CLR_VENV=$(__color 34)
+    CLR_HOST=$(__color 32)
+    CLR_PATH=$(__color 36)
+    CLR_GIT=$(__color 35)
+    # CLR_FG=30
+    CLR_RESET="\[\033[0m\]"
 
-    color() {
-        if [ $# -eq 1 ]; then
-            echo "\e[$1m"
-        elif [ $# -eq 2 ]; then
-            echo "\e[${1};${2}m"
-        fi
-    }
-
-    __git_ps1() {
-       git branch 2> /dev/null | grep '^*' | colrm 1 2 | xargs -I BRANCH echo -n $1
-    }
-
-    arrow() { echo "\e[7m\e[$1m$ICON_ARROW\e[27m"; }
-    color_reset() {	echo "\e[39;49;00m"; }
-
-    __init_twolines() { echo "$(color_reset)╒══"; }
-    __chroot_twolines() { echo "\${debian_chroot:+$(color_reset)═╡'$(color $CLR_CHROOT)'\$debian_chroot'$(color_reset)'╞}"; }
-    __host_twolines() { echo "$(color $CLR_HOST)@\h$(color_reset)╞"; }
-    __user_twolines() { echo "$(color $CLR_USER)$ICON_USER \u"; }
-    __venv_twolines() { echo "\${VIRTUAL_ENV:+$(color_reset)═╡$(color $CLR_VENV)\$(basename \$VIRTUAL_ENV)$(color_reset)╞}"; }
-    __path_twolines() { echo "$(color_reset)═╡$(color $CLR_PATH)\w$(color_reset)"; }
-    __end_twolines() { echo "$(color_reset)═══╡"; }
-    __prompt_twolines() { echo "└─$PROMPT_USER "; }
-    __git_twolines() { echo "$(color_reset)╞═╡$(color $CLR_GIT)\$(__git_ps1 '[BRANCH]')$(color_reset)"; }
-
-    __init_oneline() { echo "$(color_reset)"; }
-    __chroot_oneline() { echo "\${debian_chroot:+($(color $CLR_CHROOT)\$debian_chroot$(color_reset))}"; }
-    __host_oneline() { echo "$(color $CLR_HOST)@\h$(color_reset):"; }
-    __user_oneline() { echo "$(color $CLR_USER)$ICON_USER \u"; }
-    __venv_oneline() { echo "\${VIRTUAL_ENV:+$(color $CLR_VENV)«\$(basename \$VIRTUAL_ENV)»$(color_reset)}"; }
-    __path_oneline() { echo "$(color_reset)$(color $CLR_PATH)\w"; }
-    __end_oneline() { echo "$(color_reset)"; }
-    __prompt_oneline() { echo "$PROMPT_USER "; }
-    __git_oneline() { echo " $(color $CLR_GIT)\$(__git_ps1 '[BRANCH]')"; }
-
-    __init_moba() { echo "$(color_reset)"; }
-    __chroot_moba() { echo "\${debian_chroot:+$(color $CLR_FG $((CLR_CHROOT+10))) \$debian_chroot $(arrow $CLR_HOST)}"; }
-    __host_moba() { echo "$(arrow $CLR_HOST)$(color $CLR_FG $((CLR_HOST+10))) \h "; }
-    __user_moba() { echo "$(color $CLR_FG $((CLR_USER+10)))$ICON_USER \u "; }
-    __venv_moba() { echo "\${VIRTUAL_ENV:+$(arrow $CLR_VENV)$(color $CLR_FG $((CLR_VENV+10))) \$(basename \$VIRTUAL_ENV) }"; }
-    __path_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10))) \w "; }
-    __end_moba() { echo "$(arrow 30)$(color_reset)"; }
-    __prompt_moba() { echo "$PROMPT_USER "; }
-    #__git_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))\$(__git_ps1 '[$(color $CLR_GIT)%s$(color $CLR_FG)]')"; }
-    __git_moba() { echo "\$(__git_ps1 '$(arrow $CLR_GIT)$(color $CLR_FG $((CLR_GIT+10)))$(color $CLR_GIT) BRANCH $(color $CLR_FG)')"; }
-
-    if [ "$EUID" -eq 0 ]; then # Change prompt colors for root user
-        CLR_USER=31
-        PROMPT_USER="#"
-        ICON_USER=💀
-    fi
-
-    PS1=$(eval '__init_$PROMPT_ALTERNATIVE')
-    PS1="$PS1$(eval '__chroot_$PROMPT_ALTERNATIVE')"
-    PS1="$PS1$(eval '__user_$PROMPT_ALTERNATIVE')"
-    PS1="$PS1$(eval '__host_$PROMPT_ALTERNATIVE')"
-    PS1="$PS1$(eval '__venv_$PROMPT_ALTERNATIVE')"
-    PS1="$PS1$(eval '__path_$PROMPT_ALTERNATIVE')"
-    if [ $SHOW_GIT_BRANCH == 'yes' ]; then
-        PS1="$PS1$(eval '__git_$PROMPT_ALTERNATIVE')"
-    fi
-    PS1="$PS1$(eval '__end_$PROMPT_ALTERNATIVE')"
-    if [ $NEWLINE_BEFORE_PROMPT == 'yes' ] || [ $PROMPT_ALTERNATIVE == 'twolines' ]; then
-        PS1="$PS1\n"
-    fi
-    PS1="$PS1$(eval '__prompt_$PROMPT_ALTERNATIVE')"
-
-    #PS1='${VIRTUAL_ENV:+\[\033[01;32m\]«$(basename $VIRTUAL_ENV)»\[\033[00m\] }\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " \[\033[01;37m\]⌐%s\[\033[00m\]")\$ '
-else
-    PS1='${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)}\u@\h:\w$PROMPT_USER '
+    PS1="\${VIRTUAL_ENV:+$CLR_VENV«\$(basename \$VIRTUAL_ENV)»$CLR_RESET }$CLR_USER\u$CLR_RESET@$CLR_HOST\h$CLR_RESET:$CLR_PATH\w$CLR_RESET\$(__git_ps1 ' $CLR_GIT⑂BRANCH$CLR_RESET') \\$ "
 fi
-unset color_prompt force_color_prompt
 
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*|Eterm|aterm|kterm|gnome*|alacritty)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
+
+# The following block is surrounded by two delimiters.
+# possible value are: oneline, twolines, moba
+# PROMPT_ALTERNATIVE=oneline
+# NEWLINE_BEFORE_PROMPT=no
+# SHOW_GIT_BRANCH=yes
+
+# function parse_git_dirty {
+#     [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working directory clean" ]] && echo "~"
+# }
+
+# if [ "$color_prompt" = yes ]; then
+#     # override default virtualenv indicator in prompt
+#     VIRTUAL_ENV_DISABLE_PROMPT=1
+#     ICON_ARROW=$'\xEe\x82\xB0'
+#     PROMPT_USER="\$"
+#     ICON_USER=🐵
+#     CLR_USER=36
+#     CLR_CHROOT=90
+#     CLR_VENV=33
+#     CLR_HOST=32
+#     CLR_PATH=34
+#     CLR_GIT=35
+#     CLR_FG=30
+
+#     color() {
+#         if [ $# -eq 1 ]; then
+#             echo "\e[$1m"
+#         elif [ $# -eq 2 ]; then
+#             echo "\e[${1};${2}m"
+#         fi
+#     }
+
+#     __git_ps1() {
+#        git branch 2> /dev/null | grep '^*' | colrm 1 2 | xargs -I BRANCH echo -n $1
+#     }
+
+#     arrow() { echo "\e[7m\e[$1m$ICON_ARROW\e[27m"; }
+#     color_reset() {	echo "\e[39;49;00m"; }
+
+#     __init_twolines() { echo "$(color_reset)╒══"; }
+#     __chroot_twolines() { echo "\${debian_chroot:+$(color_reset)═╡'$(color $CLR_CHROOT)'\$debian_chroot'$(color_reset)'╞}"; }
+#     __host_twolines() { echo "$(color $CLR_HOST)@\h$(color_reset)╞"; }
+#     __user_twolines() { echo "$(color $CLR_USER)$ICON_USER \u"; }
+#     __venv_twolines() { echo "\${VIRTUAL_ENV:+$(color_reset)═╡$(color $CLR_VENV)\$(basename \$VIRTUAL_ENV)$(color_reset)╞}"; }
+#     __path_twolines() { echo "$(color_reset)═╡$(color $CLR_PATH)\w$(color_reset)"; }
+#     __end_twolines() { echo "$(color_reset)═══╡"; }
+#     __prompt_twolines() { echo "└─$PROMPT_USER "; }
+#     __git_twolines() { echo "$(color_reset)╞═╡$(color $CLR_GIT)\$(__git_ps1 '[BRANCH]')$(color_reset)"; }
+
+#     __init_oneline() { echo "$(color_reset)"; }
+#     __chroot_oneline() { echo "\${debian_chroot:+($(color $CLR_CHROOT)\$debian_chroot$(color_reset))}"; }
+#     __host_oneline() { echo "$(color $CLR_HOST)@\h$(color_reset):"; }
+#     __user_oneline() { echo "$(color $CLR_USER)$ICON_USER \u"; }
+#     __venv_oneline() { echo "\${VIRTUAL_ENV:+$(color $CLR_VENV)«\$(basename \$VIRTUAL_ENV)»$(color_reset)}"; }
+#     __path_oneline() { echo "$(color_reset)$(color $CLR_PATH)\w"; }
+#     __end_oneline() { echo "$(color_reset)"; }
+#     __prompt_oneline() { echo "$PROMPT_USER "; }
+#     __git_oneline() { echo " $(color $CLR_GIT)\$(__git_ps1 '[BRANCH]')"; }
+
+#     __init_moba() { echo "$(color_reset)"; }
+#     __chroot_moba() { echo "\${debian_chroot:+$(color $CLR_FG $((CLR_CHROOT+10))) \$debian_chroot $(arrow $CLR_HOST)}"; }
+#     __host_moba() { echo "$(arrow $CLR_HOST)$(color $CLR_FG $((CLR_HOST+10))) \h "; }
+#     __user_moba() { echo "$(color $CLR_FG $((CLR_USER+10)))$ICON_USER \u "; }
+#     __venv_moba() { echo "\${VIRTUAL_ENV:+$(arrow $CLR_VENV)$(color $CLR_FG $((CLR_VENV+10))) \$(basename \$VIRTUAL_ENV) }"; }
+#     __path_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10))) \w "; }
+#     __end_moba() { echo "$(arrow 30)$(color_reset)"; }
+#     __prompt_moba() { echo "$PROMPT_USER "; }
+#     #__git_moba() { echo "$(arrow $CLR_PATH)$(color $CLR_FG $((CLR_PATH+10)))\$(__git_ps1 '[$(color $CLR_GIT)%s$(color $CLR_FG)]')"; }
+#     __git_moba() { echo "\$(__git_ps1 '$(arrow $CLR_GIT)$(color $CLR_FG $((CLR_GIT+10)))$(color $CLR_GIT) BRANCH $(color $CLR_FG)')"; }
+
+#     if [ "$EUID" -eq 0 ]; then # Change prompt colors for root user
+#         CLR_USER=31
+#         PROMPT_USER="#"
+#         ICON_USER=💀
+#     fi
+
+#     PS1=$(eval '__init_$PROMPT_ALTERNATIVE')
+#     PS1="$PS1$(eval '__chroot_$PROMPT_ALTERNATIVE')"
+#     PS1="$PS1$(eval '__user_$PROMPT_ALTERNATIVE')"
+#     PS1="$PS1$(eval '__host_$PROMPT_ALTERNATIVE')"
+#     PS1="$PS1$(eval '__venv_$PROMPT_ALTERNATIVE')"
+#     PS1="$PS1$(eval '__path_$PROMPT_ALTERNATIVE')"
+#     if [ $SHOW_GIT_BRANCH == 'yes' ]; then
+#         PS1="$PS1$(eval '__git_$PROMPT_ALTERNATIVE')"
+#     fi
+#     PS1="$PS1$(eval '__end_$PROMPT_ALTERNATIVE')"
+#     if [ $NEWLINE_BEFORE_PROMPT == 'yes' ] || [ $PROMPT_ALTERNATIVE == 'twolines' ]; then
+#         PS1="$PS1\n"
+#     fi
+#     PS1="$PS1$(eval '__prompt_$PROMPT_ALTERNATIVE')"
+
+#     #PS1='${VIRTUAL_ENV:+\[\033[01;32m\]«$(basename $VIRTUAL_ENV)»\[\033[00m\] }\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " \[\033[01;37m\]⌐%s\[\033[00m\]")\$ '
+# else
+#     PS1='${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV)}\u@\h:\w$PROMPT_USER '
+# fi
+
+
+# if [ "$color_prompt" = yes ]; then
+#     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+# else
+#     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+# fi
+
+
+unset color_prompt force_color_prompt
 
 [ "$NEWLINE_BEFORE_PROMPT" = yes ] && PROMPT_COMMAND="PROMPT_COMMAND=echo"
 
 # enable color support of ls, less and man, and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
