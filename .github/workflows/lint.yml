@@ -3,6 +3,10 @@ name: Lint
 
 on:
   workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
     secrets:
       token:
         required: true
@@ -22,7 +26,7 @@ jobs:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - run: echo "📂 Working folder is ${{github.workspace}}"
+      - run: echo "📂 Working folder is ${{inputs.working-directory}}"
 
       - name: Checkout Code
         uses: actions/checkout@v6
@@ -39,18 +43,19 @@ jobs:
       - name: Lint Code Base
         uses: super-linter/super-linter@v8.6.0
         env:
+          DEFAULT_WORKSPACE: ${{inputs.working-directory}}/.github/linters
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON_FLAKE8: true
-          PYTHON_FLAKE8_CONFIG_FILE: ${{github.workspace}}/.github/linters/flake8
+          PYTHON_FLAKE8_CONFIG_FILE:  flake8
           VALIDATE_PYTHON_PYLINT: true
-          PYTHON_PYLINT_CONFIG_FILE: ${{github.workspace}}/.github/linters/pylint.toml
+          PYTHON_PYLINT_CONFIG_FILE: pylint.toml
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
-          MARKDOWN_CONFIG_FILE: ${{github.workspace}}/.github/linters/markdown-link-check.json
+          MARKDOWN_CONFIG_FILE: markdown-link-check.json
           VALIDATE_NATURAL_LANGUAGE: true
           VALIDATE_YAML: true
-          YAML_CONFIG_FILE: ${{github.workspace}}/.github/linters/yaml-lint.yml
+          YAML_CONFIG_FILE: yaml-lint.yml
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.token }}
 
