@@ -24,7 +24,7 @@ jobs:
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
 
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
@@ -34,20 +34,20 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Lint Code Base
-        uses: github/super-linter@v4
+        uses: super-linter/super-linter@v8.6.0
         env:
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON_FLAKE8: true
-          PYTHON_FLAKE8_CONFIG_FILE: flake8
+          PYTHON_FLAKE8_CONFIG_FILE: .github/linters/flake8
           VALIDATE_PYTHON_PYLINT: true
-          PYTHON_PYLINT_CONFIG_FILE: pylint.toml
+          PYTHON_PYLINT_CONFIG_FILE: .github/linters/pylint.toml
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
-          MARKDOWN_CONFIG_FILE: markdown-link-check.json
+          MARKDOWN_CONFIG_FILE: .github/linters/markdown-link-check.json
           VALIDATE_NATURAL_LANGUAGE: true
           VALIDATE_YAML: true
-          YAML_CONFIG_FILE: yaml-lint.yml
+          YAML_CONFIG_FILE: .github/linters/yaml-lint.yml
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.token }}
 
