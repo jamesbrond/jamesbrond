@@ -39,15 +39,15 @@ jobs:
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON_FLAKE8: true
-          PYTHON_FLAKE8_CONFIG_FILE: .github/linters/flake8
+          PYTHON_FLAKE8_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/flake8
           VALIDATE_PYTHON_PYLINT: true
-          PYTHON_PYLINT_CONFIG_FILE: .github/linters/pylint.toml
+          PYTHON_PYLINT_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/pylint.toml
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
-          MARKDOWN_CONFIG_FILE: .github/linters/markdown-link-check.json
+          MARKDOWN_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/markdown-link-check.json
           VALIDATE_NATURAL_LANGUAGE: true
           VALIDATE_YAML: true
-          YAML_CONFIG_FILE: .github/linters/yaml-lint.yml
+          YAML_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/yaml-lint.yml
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.token }}
 
