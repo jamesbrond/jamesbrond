@@ -22,12 +22,15 @@ jobs:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "📂 Working folder is ${{github.workspace}}"
 
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install dependencies with pip + requirements.txt
         shell: bash
@@ -39,15 +42,15 @@ jobs:
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON_FLAKE8: true
-          PYTHON_FLAKE8_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/flake8
+          PYTHON_FLAKE8_CONFIG_FILE: ${{github.workspace}}/.github/linters/flake8
           VALIDATE_PYTHON_PYLINT: true
-          PYTHON_PYLINT_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/pylint.toml
+          PYTHON_PYLINT_CONFIG_FILE: ${{github.workspace}}/.github/linters/pylint.toml
           VALIDATE_JSON: true
           VALIDATE_MARKDOWN: true
-          MARKDOWN_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/markdown-link-check.json
+          MARKDOWN_CONFIG_FILE: ${{github.workspace}}/.github/linters/markdown-link-check.json
           VALIDATE_NATURAL_LANGUAGE: true
           VALIDATE_YAML: true
-          YAML_CONFIG_FILE: ${GITHUB_WORKSPACE}/.github/linters/yaml-lint.yml
+          YAML_CONFIG_FILE: ${{github.workspace}}/.github/linters/yaml-lint.yml
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.token }}
 
